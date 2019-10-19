@@ -5,22 +5,89 @@ import android.content.Context
 import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
+import android.os.Handler
+import android.os.HandlerThread
 import android.view.Surface
+import android.view.SurfaceHolder
 import android.view.WindowManager
 import com.dming.fastscanqr.utils.DLog
+import com.dming.fastscanqr.utils.EglHelper
+import com.dming.fastscanqr.utils.FGLUtils
+import java.io.IOException
 import java.util.*
 
+@Suppress("DEPRECATION")
 class CameraHelper {
     //
     private var mCameraId: Int = 0
-    private lateinit var mCamera: Camera
+    private var mCamera: Camera? = null
     private lateinit var mCameraParameters: Camera.Parameters
     private val mCameraInfo = Camera.CameraInfo()
-    private val INVALID_CAMERA_ID = -1
-    private val mPreviewSizes: MutableList<CameraSize> = ArrayList<CameraSize>()
-    private var mSurfaceTexture: SurfaceTexture? = null
+    private val mPreviewSizes: MutableList<CameraSize> = ArrayList()
+    private lateinit var mSurfaceTexture: SurfaceTexture
     private val mCameraMatrix = FloatArray(16)
+    //
+    private val mHandlerThread = HandlerThread("GL")
+    private lateinit var mHandler: Handler
+    private lateinit var mCameraFilter: CameraFilter
+    private var mTextureId: Int = 0
+    private val mEglHelper = EglHelper()
+    //
+    private var width: Int = 0
+    private var height: Int = 0
 
+    fun init() {
+        mHandlerThread.start()
+        mHandler = Handler(mHandlerThread.looper)
+    }
+
+    fun surfaceCreated(activity: Activity, holder: SurfaceHolder?) {
+        mHandler.post {
+            mEglHelper.initEgl(null, holder!!.surface)
+            mEglHelper.glBindThread()
+            mTextureId = FGLUtils.createOESTexture()
+            mSurfaceTexture = SurfaceTexture(mTextureId)
+            mCameraFilter = CameraFilter(activity)
+            mSurfaceTexture.setOnFrameAvailableListener {
+                it.updateTexImage()
+                it.getTransformMatrix(mCameraMatrix)
+                mEglHelper.swapBuffers()
+                mCameraFilter.onDraw(mTextureId, mCameraMatrix, 0, 0, width, height)
+            }
+            chooseCamera()
+            openCamera()
+            if (mCamera != null) {
+                try {
+                    mCamera?.setPreviewTexture(mSurfaceTexture)
+                } catch (e: IOException) {
+                }
+                setCameraDisplayOrientation(activity, mCamera!!, mCameraInfo)
+                adjustCameraParameters(activity)
+            }
+        }
+    }
+
+    fun onSurfaceChanged(holder: SurfaceHolder?, width: Int, height: Int) {
+        this@CameraHelper.width = width
+        this@CameraHelper.height = height
+        mHandler.post {
+            mCameraFilter.onChange(width, height)
+        }
+    }
+
+    fun surfaceDestroyed() {
+        mHandler.post {
+            FGLUtils.deleteTexture(mTextureId)
+            releaseCamera()
+            mCameraFilter.onDestroy()
+            mEglHelper.destroyEgl()
+            mSurfaceTexture.release()
+        }
+    }
+
+    fun destroy() {
+        mHandlerThread.quit()
+    }
 
     private fun chooseCamera() {
         var i = 0
@@ -33,7 +100,7 @@ class CameraHelper {
             }
             i++
         }
-        mCameraId = INVALID_CAMERA_ID
+        mCameraId = -1
     }
 
     private fun openCamera() {
@@ -41,9 +108,9 @@ class CameraHelper {
             releaseCamera()
         }
         mCamera = Camera.open(mCameraId)
-        mCameraParameters = mCamera.getParameters()
+        mCameraParameters = mCamera!!.parameters
         mPreviewSizes.clear()
-        for (size in mCameraParameters.getSupportedPreviewSizes()) {
+        for (size in mCameraParameters.supportedPreviewSizes) {
             //            DLog.i("size->" + size.width + " " + size.height);
             mPreviewSizes.add(CameraSize(size.width, size.height))
         }
@@ -55,17 +122,19 @@ class CameraHelper {
         val size = suitableSize!!.srcSize
         mCameraParameters.setPreviewSize(size.width, size.height)
         setAutoFocusInternal(true)
-        mCamera.setParameters(mCameraParameters)
-        mCamera.startPreview()
+        mCamera?.parameters = mCameraParameters
+        mCamera?.startPreview()
     }
 
     private fun releaseCamera() {
-        if (mCamera != null) {
-            mCamera.release()
-        }
+        mCamera?.release()
     }
 
-    fun setCameraDisplayOrientation(activity: Activity, camera: Camera, info: Camera.CameraInfo) {
+    private fun setCameraDisplayOrientation(
+        activity: Activity,
+        camera: Camera,
+        info: Camera.CameraInfo
+    ) {
         val rotation = activity.windowManager.defaultDisplay.rotation
         var degrees = 0
         when (rotation) {
@@ -87,7 +156,7 @@ class CameraHelper {
     }
 
     private fun setAutoFocusInternal(autoFocus: Boolean): Boolean {
-        if (isCameraOpened()) {
+        if (mCamera != null) {
             val modes = mCameraParameters.getSupportedFocusModes()
             if (autoFocus && modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 mCameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)
@@ -104,21 +173,12 @@ class CameraHelper {
         }
     }
 
-    internal fun isCameraOpened(): Boolean {
-        return mCamera != null
-    }
-
-    protected fun getDealCameraSize(context: Context, rotation: Int): CameraSize? {
+    private fun getDealCameraSize(context: Context, rotation: Int): CameraSize? {
         val greaterThanView = TreeSet<CameraSize>()
         val lessThanView = ArrayList<CameraSize>()
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val point = Point()
-        if (wm == null) {
-            point.x = 1080
-            point.y = 1920
-        } else {
-            wm.defaultDisplay.getSize(point)
-        }
+        wm.defaultDisplay.getSize(point)
         if (point.x in 701..799) {
             point.x = 720
             point.y = 1280
