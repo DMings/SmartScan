@@ -35,6 +35,11 @@ public class FGLUtils {
         return new int[]{mFrameBuffer[0], mFrameBufferTexture[0]};
     }
 
+    public static void deleteFBO(int[] ids) {
+        GLES20.glDeleteFramebuffers(1, new int[]{ids[0]}, 0);
+        GLES20.glDeleteTextures(1, new int[]{ids[1]}, 0);
+    }
+
     public static int createOESTexture() {
         int[] tex = new int[1];
         //生成一个纹理
@@ -71,7 +76,7 @@ public class FGLUtils {
         return tex[0];
     }
 
-    public static void deleteTexture(int textureId){
+    public static void deleteTexture(int textureId) {
         GLES20.glDeleteTextures(1, new int[]{textureId}, 0);
     }
 

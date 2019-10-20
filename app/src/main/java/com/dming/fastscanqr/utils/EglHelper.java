@@ -84,9 +84,6 @@ public class EglHelper {
         } else {
             mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null);
         }
-    }
-
-    public void glBindThread() {
         //8. 绑定EglContext和Surface到显示设备中
         if (mEglDisplay != null && mEglSurface != null && mEglContext != null) {
             if (!mEgl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {
@@ -94,7 +91,6 @@ public class EglHelper {
             }
         }
     }
-
 
     //9. 刷新数据，显示渲染场景
     public boolean swapBuffers() {
