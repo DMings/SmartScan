@@ -5,19 +5,14 @@ import android.hardware.Camera
 import android.view.Surface
 import com.dming.fastscanqr.utils.DLog
 import java.io.IOException
-import java.util.*
-import kotlin.math.abs
 
 @Suppress("DEPRECATION")
-class Camera1 : ICamera {
+class Camera1 : BaseCamera(), ICamera {
 
     private var mCameraId: Int = 0
     private var mCamera: Camera? = null
     private lateinit var mCameraParameters: Camera.Parameters
     private val mCameraInfo = Camera.CameraInfo()
-    private val mPreviewSizes: MutableList<CameraSize> = ArrayList()
-    private var viewWidth: Int = 0
-    private var viewHeight: Int = 0
 
     override fun init() {
         var i = 0
@@ -48,14 +43,14 @@ class Camera1 : ICamera {
             } catch (e: IOException) {
             }
             setCameraDisplayOrientation(mCamera!!, mCameraInfo)
-//            adjustCameraParameters()
         }
         DLog.d("openCamera cost time: ${System.currentTimeMillis() - start}")
     }
 
     override fun surfaceChange(width: Int, height: Int) {
-        //
-        adjustCameraParameters()
+        viewWidth = width
+        viewHeight = height
+        adjustCameraParameters(width, height)
     }
 
     override fun close() {
@@ -66,8 +61,8 @@ class Camera1 : ICamera {
         //
     }
 
-    private fun adjustCameraParameters() {
-        val suitableSize = getDealCameraSize(mCameraInfo.orientation)
+    private fun adjustCameraParameters(width: Int, height: Int) {
+        val suitableSize = getDealCameraSize(width, height, mCameraInfo.orientation)
         val size = suitableSize!!.srcSize
         mCameraParameters.setPreviewSize(size.width, size.height)
         setAutoFocusInternal(true)
@@ -117,59 +112,6 @@ class Camera1 : ICamera {
         } else {
             false
         }
-    }
-
-    private fun getDealCameraSize(rotation: Int): CameraSize? {
-        val greaterThanView = TreeSet<CameraSize>()
-        val lessThanView = ArrayList<CameraSize>()
-//        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-//        val point = Point()
-//        wm.defaultDisplay.getSize(point)
-//        if (point.x in 701..799) {
-//            point.x = 720
-//            point.y = 1280
-//        } else if (point.x in 1001..1099) {
-//            point.x = 1080
-//            point.y = 1920
-//        }
-//        val viewWidth = point.x
-//        val viewHeight = point.y
-        DLog.i("viewWidth>  $viewWidth viewHeight>> $viewHeight")
-        for (size in mPreviewSizes) {
-            if (rotation == 90 || rotation == 270) { // width > height normal
-                if (size.width >= viewHeight && size.height >= viewWidth) {
-                    greaterThanView.add(CameraSize(size.height, size.width, size))
-                } else {
-                    lessThanView.add(CameraSize(size.height, size.width, size))
-                }
-            } else { // width < height normal  0 180
-                if (size.width >= viewWidth && size.height >= viewHeight) {
-                    greaterThanView.add(CameraSize(size.width, size.height, size))
-                } else {
-                    lessThanView.add(CameraSize(size.width, size.height, size))
-                }
-            }
-        }
-        var cSize: CameraSize? = null
-        if (greaterThanView.size > 0) {
-            cSize = greaterThanView.first()
-        } else {
-            var diffMinValue = Integer.MAX_VALUE
-            for (size in lessThanView) {
-                val diffWidth = abs(viewWidth - size.width)
-                val diffHeight = abs(viewHeight - size.height)
-                val diffValue = diffWidth + diffHeight
-                if (diffValue < diffMinValue) {  // 找出差值最小的数
-                    diffMinValue = diffValue
-                    cSize = size
-                }
-            }
-            if (cSize == null) {
-                cSize = lessThanView[0]
-            }
-        }
-        DLog.i("suitableSize>" + cSize!!.toString())
-        return cSize
     }
 
 
