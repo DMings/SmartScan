@@ -46,7 +46,7 @@ class CameraActivity : AppCompatActivity() {
                 height: Int
             ) {
                 DLog.i("surfaceChanged")
-                mCameraHelper.onSurfaceChanged(holder, width, height)
+                mCameraHelper.onSurfaceChanged(width, height)
             }
 
             override fun surfaceDestroyed(holder: SurfaceHolder?) {
