@@ -1,5 +1,6 @@
 package com.dming.fastscanqr
 
+import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.view.Surface
@@ -8,13 +9,13 @@ import java.io.IOException
 
 @Suppress("DEPRECATION")
 class Camera1 : BaseCamera(), ICamera {
-
     private var mCameraId: Int = 0
     private var mCamera: Camera? = null
     private lateinit var mCameraParameters: Camera.Parameters
     private val mCameraInfo = Camera.CameraInfo()
+    private var mSurfaceTexture: SurfaceTexture? = null
 
-    override fun init() {
+    override fun init(context: Context) {
         var i = 0
         val count = Camera.getNumberOfCameras()
         while (i < count) {
@@ -28,7 +29,9 @@ class Camera1 : BaseCamera(), ICamera {
         mCameraId = -1
     }
 
-    override fun open(surfaceTexture: SurfaceTexture) {
+    override fun open(textureId: Int) {
+        DLog.i("mCameraId: $mCameraId")
+        mSurfaceTexture = SurfaceTexture(textureId)
         val start = System.currentTimeMillis()
         mCamera = Camera.open(mCameraId)
         mCameraParameters = mCamera!!.parameters
@@ -39,7 +42,7 @@ class Camera1 : BaseCamera(), ICamera {
         }
         if (mCamera != null) {
             try {
-                mCamera?.setPreviewTexture(surfaceTexture)
+                mCamera?.setPreviewTexture(mSurfaceTexture)
             } catch (e: IOException) {
             }
             setCameraDisplayOrientation(mCamera!!, mCameraInfo)
@@ -47,23 +50,33 @@ class Camera1 : BaseCamera(), ICamera {
         DLog.d("openCamera cost time: ${System.currentTimeMillis() - start}")
     }
 
-    override fun surfaceChange(width: Int, height: Int) {
+    override fun surfaceChange(surface: Surface,width: Int, height: Int) {
         viewWidth = width
         viewHeight = height
+        mSurfaceTexture?.setDefaultBufferSize(width, height)
         adjustCameraParameters(width, height)
     }
 
     override fun close() {
+        mSurfaceTexture?.setOnFrameAvailableListener(null)
         mCamera?.release()
+        mSurfaceTexture?.release()
+        mSurfaceTexture = null
     }
 
     override fun release() {
         //
     }
 
+    override fun getSurfaceTexture(): SurfaceTexture? {
+        return mSurfaceTexture
+    }
+
     private fun adjustCameraParameters(width: Int, height: Int) {
+        Camera.getCameraInfo(mCameraId, mCameraInfo)
         val suitableSize = getDealCameraSize(width, height, mCameraInfo.orientation)
         val size = suitableSize!!.srcSize
+        mCamera?.stopPreview()
         mCameraParameters.setPreviewSize(size.width, size.height)
         setAutoFocusInternal(true)
         mCamera?.parameters = mCameraParameters

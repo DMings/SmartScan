@@ -19,51 +19,72 @@ package com.dming.fastscanqr
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
-import android.hardware.camera2.CameraAccessException
-import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import android.hardware.camera2.CaptureRequest
+import android.graphics.SurfaceTexture
+import android.hardware.camera2.*
 import android.view.Surface
 import com.dming.fastscanqr.utils.DLog
+import java.lang.Exception
 
 @TargetApi(21)
-class Camera2 : BaseCamera(){
+class Camera2 : BaseCamera(), ICamera {
+
+    private var mSurfaceTexture: SurfaceTexture? = null
+    private var mCameraId: String? = null
+    private var mCameraCharacteristics: CameraCharacteristics? = null
+    private var mCamera: CameraDevice? = null
+    private var mCaptureSession: CameraCaptureSession? = null
+    private var mPreviewRequestBuilder: CaptureRequest.Builder? = null
+    private var mAutoFocus: Boolean = false
+    private var mSurface: Surface? = null
+
+    override fun init(context: Context) {
+        mCameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        chooseCameraIdByFacing()
+    }
+
+    override fun open(textureId: Int) {
+        collectCameraInfo()
+        startOpeningCamera()
+    }
+
+    override fun surfaceChange(surface: Surface, width: Int, height: Int) {
+        mSurface = surface
+        viewWidth = width
+        viewHeight = height
+        if (mCamera != null) {
+            startCaptureSession(surface, width, height)
+        }
+    }
+
+    override fun close() {
+        mCaptureSession?.close()
+        mCaptureSession = null
+        mCamera?.close()
+        mCamera = null
+        mSurface = null
+        mPreviewRequestBuilder = null
+    }
+
+    override fun release() {
+    }
+
+    override fun getSurfaceTexture(): SurfaceTexture? {
+        return mSurfaceTexture
+    }
 
     private var mCameraManager: CameraManager? = null
-
-    private val mCameraDeviceCallback = object : CameraDevice.StateCallback() {
-
-        override fun onOpened(camera: CameraDevice) {
-            mCamera = camera
-                        startCaptureSession();
-        }
-
-        override fun onClosed(camera: CameraDevice) {}
-
-        override fun onDisconnected(camera: CameraDevice) {
-            camera.close()
-            mCamera = null
-        }
-
-        override fun onError(camera: CameraDevice, error: Int) {
-            DLog.e("onError: " + camera.id + " (" + error + ")")
-            mCamera!!.close()
-            mCamera = null
-        }
-
-    }
 
     private val mSessionCallback = object : CameraCaptureSession.StateCallback() {
 
         override fun onConfigured(session: CameraCaptureSession) {
+            DLog.i("mSessionCallback >>>onConfigured")
             if (mCamera == null) {
                 return
             }
             mCaptureSession = session
             updateAutoFocus()
             try {
+                DLog.i("setRepeatingRequest")
                 mCaptureSession!!.setRepeatingRequest(mPreviewRequestBuilder!!.build(), null, null)
             } catch (e: CameraAccessException) {
                 DLog.e("Failed to start camera preview because it couldn't access camera $e")
@@ -78,50 +99,13 @@ class Camera2 : BaseCamera(){
         }
 
         override fun onClosed(session: CameraCaptureSession) {
+            DLog.e("mSessionCallback onClosed")
             if (mCaptureSession != null && mCaptureSession == session) {
                 mCaptureSession = null
             }
         }
 
     }
-
-    private var mCameraId: String? = null
-
-    private var mCameraCharacteristics: CameraCharacteristics? = null
-
-    private var mCamera: CameraDevice? = null
-
-    private var mCaptureSession: CameraCaptureSession? = null
-
-    private var mPreviewRequestBuilder: CaptureRequest.Builder? = null
-
-    private var mAutoFocus: Boolean = false
-
-    fun init(context: Context) {
-        mCameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-    }
-
-    fun start(): Boolean {
-        if (!chooseCameraIdByFacing()) {
-            return false
-        }
-        collectCameraInfo()
-        startOpeningCamera()
-        return true
-    }
-
-    fun stop() {
-        if (mCaptureSession != null) {
-            mCaptureSession!!.close()
-            mCaptureSession = null
-        }
-        if (mCamera != null) {
-            mCamera!!.close()
-            mCamera = null
-        }
-        mPreviewRequestBuilder = null
-    }
-
 
     private fun chooseCameraIdByFacing(): Boolean {
         try {
@@ -135,29 +119,19 @@ class Camera2 : BaseCamera(){
                 val level = characteristics.get(
                     CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL
                 )
-                if (level == null || level == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
-                    continue
-                }
+//                if (level == null || level == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+//                    continue
+//                }
                 val internal = characteristics.get(CameraCharacteristics.LENS_FACING)
                     ?: throw NullPointerException("Unexpected state: LENS_FACING null")
+                DLog.i("internal: $internal")
                 if (internal == internalFacing) {
                     mCameraId = id
                     mCameraCharacteristics = characteristics
                     return true
                 }
             }
-            // Not found
-            mCameraId = ids[0]
-            mCameraCharacteristics = mCameraManager!!.getCameraCharacteristics(mCameraId!!)
-            val level = mCameraCharacteristics!!.get(
-                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL
-            )
-            if (level == null || level == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
-                return false
-            }
-            val internal = mCameraCharacteristics!!.get(CameraCharacteristics.LENS_FACING)
-                ?: throw NullPointerException("Unexpected state: LENS_FACING null")
-            return true
+            return false
         } catch (e: CameraAccessException) {
             throw RuntimeException("Failed to get a list of camera devices", e)
         }
@@ -167,39 +141,28 @@ class Camera2 : BaseCamera(){
     private fun collectCameraInfo() {
         val map = mCameraCharacteristics!!.get(
             CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
-        )?: throw IllegalStateException("Failed to get configuration map: " + mCameraId!!)
+        ) ?: throw IllegalStateException("Failed to get configuration map: " + mCameraId!!)
         mPreviewSizes.clear()
-
-        map.getOutputSizes(Surface::class.java).forEach {
+        map.getOutputSizes(SurfaceTexture::class.java).forEach {
             mPreviewSizes.add(CameraSize(it.width, it.height))
         }
-        val mSensorOrientation =
-            mCameraCharacteristics!!.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
-        getDealCameraSize(1,1,mSensorOrientation)
     }
 
-    private fun startCaptureSession(surface: Surface) {
-        //        final int viewWidth = mPreview.getWidth();
-        //        final int viewHeight = mPreview.getHeight();
-        //        if (mCamera != null ||
-        //                width == 0 || height == 0 || mPreviewRequestBuilder != null) {
-        //            return;
-        //        }
-        //        dealCameraSize(mSensorOrientation);
-        //        CameraSize suitableSize = getSuitableSize().getSrcSize();
-        //        prepareImageReader(suitableSize);
-        //        DLog.i( "startCaptureSession " + suitableSize.getWidth() + " -> " + suitableSize.getHeight());
-        //            mPreview.setBufferSize(suitableSize.getWidth(), suitableSize.getHeight());
-        //            Surface surface = mPreview.getSurface();
+    private fun startCaptureSession(surface: Surface, width: Int, height: Int) {
+        DLog.i("startCaptureSession $surface $width $height")
+        val mSensorOrientation =
+            mCameraCharacteristics!!.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
+        val cameraSize = getDealCameraSize(width, height, mSensorOrientation)
+        mSurfaceTexture?.setDefaultBufferSize(cameraSize.width, cameraSize.height)
         try {
             mPreviewRequestBuilder = mCamera!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
             mPreviewRequestBuilder!!.addTarget(surface)
-            mCamera!!.createCaptureSession(
-                listOf(surface),
-                mSessionCallback, null
-            )
-        } catch (e: CameraAccessException) {
-            throw RuntimeException("Failed to start camera session")
+            DLog.i("createCaptureSession >>>")
+            mCamera!!.createCaptureSession(listOf(surface), mSessionCallback, null)
+            DLog.i("createCaptureSession >>> finish")
+        } catch (e: Exception) {
+            DLog.i("CameraAccessException: ${e.cause}")
+//            throw RuntimeException("Failed to start camera session")
         }
 
     }
@@ -207,7 +170,33 @@ class Camera2 : BaseCamera(){
     @SuppressLint("MissingPermission")
     private fun startOpeningCamera() {
         try {
-            mCameraManager!!.openCamera(mCameraId!!, mCameraDeviceCallback, null)
+            mCameraManager!!.openCamera(mCameraId!!, object : CameraDevice.StateCallback() {
+
+                override fun onOpened(camera: CameraDevice) {
+                    DLog.i("startOpeningCamera onOpened")
+                    mCamera = camera
+                    if (mSurface != null && viewWidth != 0 && viewHeight != 0) {
+                        startCaptureSession(mSurface!!, viewWidth, viewHeight)
+                    }
+                }
+
+                override fun onClosed(camera: CameraDevice) {
+                    DLog.i("startOpeningCamera onClosed")
+                }
+
+                override fun onDisconnected(camera: CameraDevice) {
+                    DLog.i("startOpeningCamera onDisconnected")
+                    camera.close()
+                    mCamera = null
+                }
+
+                override fun onError(camera: CameraDevice, error: Int) {
+                    DLog.e("startOpeningCamera onError: " + camera.id + " (" + error + ")")
+                    mCamera!!.close()
+                    mCamera = null
+                }
+
+            }, null)
         } catch (e: CameraAccessException) {
             throw RuntimeException("Failed to open camera: " + mCameraId!!, e)
         }
@@ -220,7 +209,7 @@ class Camera2 : BaseCamera(){
                 CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES
             )
             // Auto focus is not supported
-            if (modes == null || modes.size == 0 ||
+            if (modes == null || modes.isEmpty() ||
                 modes.size == 1 && modes[0] == CameraCharacteristics.CONTROL_AF_MODE_OFF
             ) {
                 mAutoFocus = false

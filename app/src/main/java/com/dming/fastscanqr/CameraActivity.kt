@@ -1,20 +1,12 @@
 package com.dming.fastscanqr
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.SurfaceHolder
 import android.view.SurfaceHolder.Callback
 import android.widget.ImageView
 import com.dming.fastscanqr.utils.DLog
-import com.google.zxing.BinaryBitmap
-import com.google.zxing.ChecksumException
-import com.google.zxing.FormatException
-import com.google.zxing.NotFoundException
-import com.google.zxing.common.GlobalHistogramBinarizer
-import com.google.zxing.qrcode.QRCodeReader
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.IOException
 
 
 class CameraActivity : AppCompatActivity() {
@@ -31,7 +23,7 @@ class CameraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mCameraHelper.init()
+        mCameraHelper.init(this)
         glSurfaceView.holder.addCallback(object : Callback {
 
             override fun surfaceCreated(holder: SurfaceHolder?) {
@@ -46,7 +38,7 @@ class CameraActivity : AppCompatActivity() {
                 height: Int
             ) {
                 DLog.i("surfaceChanged")
-                mCameraHelper.onSurfaceChanged(width, height)
+                mCameraHelper.onSurfaceChanged(holder.surface, width, height)
             }
 
             override fun surfaceDestroyed(holder: SurfaceHolder?) {

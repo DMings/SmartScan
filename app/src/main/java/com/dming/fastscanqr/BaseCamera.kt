@@ -11,7 +11,7 @@ open class BaseCamera {
     protected var viewWidth: Int = 0
     protected var viewHeight: Int = 0
 
-    protected fun getDealCameraSize(width: Int, height: Int, rotation: Int): CameraSize? {
+    protected fun getDealCameraSize(width: Int, height: Int, rotation: Int): CameraSize {
         val greaterThanView = TreeSet<CameraSize>()
         val lessThanView = ArrayList<CameraSize>()
         DLog.i("getDealCameraSize width>  $width height>> $height")

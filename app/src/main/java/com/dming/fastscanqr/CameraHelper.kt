@@ -3,30 +3,23 @@ package com.dming.fastscanqr
 import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Point
 import android.graphics.SurfaceTexture
-import android.hardware.Camera
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
-import android.view.WindowManager
 import android.widget.ImageView
 import com.dming.fastscanqr.utils.DLog
 import com.dming.fastscanqr.utils.EglHelper
 import com.dming.fastscanqr.utils.FGLUtils
-import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.*
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.math.abs
 
 
 class CameraHelper {
-    private val mCamera = Camera1()
+    private val mCamera = Camera2()
 
-    private lateinit var mSurfaceTexture: SurfaceTexture
     private val mCameraMatrix = FloatArray(16)
     //
     private lateinit var mGLThread: HandlerThread
@@ -56,7 +49,7 @@ class CameraHelper {
     //
     private lateinit var mPixelFilter: PixelFilter
 
-    fun init() {
+    fun init(context: Context) {
         mGLThread = HandlerThread("GL")
         mPixelThread = HandlerThread("QR")
         mGLThread.start()
@@ -64,7 +57,7 @@ class CameraHelper {
         mPixelThread.start()
         mPixelHandler = Handler(mPixelThread.looper)
         mGLHandler.post {
-            mCamera.init()
+            mCamera.init(context)
         }
     }
 
@@ -72,10 +65,10 @@ class CameraHelper {
         mGLHandler.post {
             mEglHelper.initEgl(null, holder!!.surface)
             mTextureId = FGLUtils.createOESTexture()
-            mSurfaceTexture = SurfaceTexture(mTextureId)
             mPreviewFilter = PreviewFilter(activity)
             mLuminanceFilter = LuminanceFilter(activity)
-            mSurfaceTexture.setOnFrameAvailableListener {
+            mCamera.open(mTextureId)
+            mCamera.getSurfaceTexture()?.setOnFrameAvailableListener {
                 it.updateTexImage()
                 it.getTransformMatrix(mCameraMatrix)
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameIds[0])
@@ -92,7 +85,6 @@ class CameraHelper {
                     mPixelEglHelper.swapBuffers()
                 }
             }
-            mCamera.open(mSurfaceTexture)
             mPixelHandler.post {
                 mPixelTexture = FGLUtils.createOESTexture()
                 mPixelSurfaceTexture = SurfaceTexture(mPixelTexture)
@@ -107,17 +99,16 @@ class CameraHelper {
         }
     }
 
-    fun onSurfaceChanged(width: Int, height: Int) {
+    fun onSurfaceChanged(surface: Surface,width: Int, height: Int) {
         mWidth = width
         mHeight = height
         mGLHandler.post {
-            mSurfaceTexture.setDefaultBufferSize(width, height)
             GLES20.glViewport(0, 0, mWidth, mHeight)
             GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
             mFrameIds = FGLUtils.createFBO(width, height)
             //
-            mCamera.surfaceChange(width, height)
+            mCamera.surfaceChange(surface,width, height)
             //
             mPixelHandler.post {
                 mPixelBuffer = ByteBuffer.allocate(width * height * 4)
@@ -135,7 +126,6 @@ class CameraHelper {
     fun surfaceDestroyed() {
         mIsPixelInitSuccess = false
         mPixelSurfaceTexture?.setOnFrameAvailableListener(null)
-        mSurfaceTexture.setOnFrameAvailableListener(null)
         mPixelHandler.post {
             FGLUtils.deleteTexture(mPixelTexture)
             mPixelFilter.onDestroy()
@@ -150,7 +140,6 @@ class CameraHelper {
             mPreviewFilter.onDestroy()
             mLuminanceFilter.onDestroy()
             mEglHelper.destroyEgl()
-            mSurfaceTexture.release()
         }
     }
 
