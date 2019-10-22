@@ -18,7 +18,7 @@ import java.util.concurrent.locks.ReentrantLock
 
 
 class CameraHelper {
-    private val mCamera = Camera2()
+    private val mCamera = Camera1()
 
     private val mCameraMatrix = FloatArray(16)
     //
@@ -69,18 +69,18 @@ class CameraHelper {
             mLuminanceFilter = LuminanceFilter(activity)
             mCamera.open(mTextureId)
             mCamera.getSurfaceTexture()?.setOnFrameAvailableListener {
-                it.updateTexImage()
-                it.getTransformMatrix(mCameraMatrix)
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameIds[0])
-                mLuminanceFilter.onDraw(mTextureId, mCameraMatrix, 0, 0, mWidth, mHeight)
+                mLuminanceFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
                 //
-                mPreviewFilter.onDraw(mTextureId, mCameraMatrix, 0, 0, mWidth, mHeight)
+                mPreviewFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
                 mEglHelper.swapBuffers()
+                it.updateTexImage()
+                it.getTransformMatrix(mCameraMatrix)
                 //
                 mPixelHandler.post {
                     if (mIsPixelInitSuccess) {
-                        mPixelFilter.onDraw(mFrameIds[1], mCameraMatrix, 0, 0, mWidth, mHeight)
+                        mPixelFilter.onDraw(mFrameIds[1], 0, 0, mWidth, mHeight, null)
                     }
                     mPixelEglHelper.swapBuffers()
                 }
@@ -99,7 +99,7 @@ class CameraHelper {
         }
     }
 
-    fun onSurfaceChanged(surface: Surface,width: Int, height: Int) {
+    fun onSurfaceChanged(width: Int, height: Int) {
         mWidth = width
         mHeight = height
         mGLHandler.post {
@@ -108,7 +108,7 @@ class CameraHelper {
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
             mFrameIds = FGLUtils.createFBO(width, height)
             //
-            mCamera.surfaceChange(surface,width, height)
+            mCamera.surfaceChange(width, height)
             //
             mPixelHandler.post {
                 mPixelBuffer = ByteBuffer.allocate(width * height * 4)

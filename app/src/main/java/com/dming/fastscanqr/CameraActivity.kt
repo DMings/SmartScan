@@ -7,6 +7,13 @@ import android.view.SurfaceHolder.Callback
 import android.widget.ImageView
 import com.dming.fastscanqr.utils.DLog
 import kotlinx.android.synthetic.main.activity_main.*
+import android.view.ViewTreeObserver
+import android.support.v4.app.SupportActivity
+import android.support.v4.app.SupportActivity.ExtraData
+import android.support.v4.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 
 class CameraActivity : AppCompatActivity() {
@@ -38,7 +45,7 @@ class CameraActivity : AppCompatActivity() {
                 height: Int
             ) {
                 DLog.i("surfaceChanged")
-                mCameraHelper.onSurfaceChanged(holder.surface, width, height)
+                mCameraHelper.onSurfaceChanged(width, height)
             }
 
             override fun surfaceDestroyed(holder: SurfaceHolder?) {
@@ -73,6 +80,25 @@ class CameraActivity : AppCompatActivity() {
 //                e.printStackTrace()
 //            }
 //        }
+
+//        if (getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+//            fullBtn.setImageResource(R.drawable.ic_button_zoom);
+//            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+//        }else {
+//            fullBtn.setImageResource(R.drawable.ic_button_full);
+//            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+//        }
+//        baseLayout.getViewTreeObserver()
+//            .addOnGlobalLayoutListener(ViewTreeObserver.OnGlobalLayoutListener {
+//                val width = baseLayout.getMeasuredWidth()
+//                val height = baseLayout.getMeasuredHeight()
+//                if (width != widthPixels || height != heightPixels) {
+//                    widthPixels = width
+//                    heightPixels = height
+//                    //                    DLog.i("baseLayout Width: "+baseLayout.getMeasuredWidth()+" Height: "+baseLayout.getMeasuredHeight());
+//                    dnPlayer.onConfigurationChanged(widthPixels, heightPixels)
+//                }
+//            })
     }
 
     override fun onDestroy() {

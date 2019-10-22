@@ -4,8 +4,9 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.view.Surface
+import android.view.WindowManager
 import com.dming.fastscanqr.utils.DLog
-import java.io.IOException
+
 
 @Suppress("DEPRECATION")
 class Camera1 : BaseCamera(), ICamera {
@@ -14,8 +15,10 @@ class Camera1 : BaseCamera(), ICamera {
     private lateinit var mCameraParameters: Camera.Parameters
     private val mCameraInfo = Camera.CameraInfo()
     private var mSurfaceTexture: SurfaceTexture? = null
+    private var mContext: Context? = null
 
     override fun init(context: Context) {
+        mContext = context
         var i = 0
         val count = Camera.getNumberOfCameras()
         while (i < count) {
@@ -37,20 +40,16 @@ class Camera1 : BaseCamera(), ICamera {
         mCameraParameters = mCamera!!.parameters
         mPreviewSizes.clear()
         for (size in mCameraParameters.supportedPreviewSizes) {
-            //            DLog.i("size->" + size.width + " " + size.height);
             mPreviewSizes.add(CameraSize(size.width, size.height))
         }
         if (mCamera != null) {
-            try {
-                mCamera?.setPreviewTexture(mSurfaceTexture)
-            } catch (e: IOException) {
-            }
+            mCamera?.setPreviewTexture(mSurfaceTexture)
             setCameraDisplayOrientation(mCamera!!, mCameraInfo)
         }
         DLog.d("openCamera cost time: ${System.currentTimeMillis() - start}")
     }
 
-    override fun surfaceChange(surface: Surface,width: Int, height: Int) {
+    override fun surfaceChange(width: Int, height: Int) {
         viewWidth = width
         viewHeight = height
         mSurfaceTexture?.setDefaultBufferSize(width, height)
@@ -75,12 +74,14 @@ class Camera1 : BaseCamera(), ICamera {
     private fun adjustCameraParameters(width: Int, height: Int) {
         Camera.getCameraInfo(mCameraId, mCameraInfo)
         val suitableSize = getDealCameraSize(width, height, mCameraInfo.orientation)
-        val size = suitableSize!!.srcSize
+        val size = suitableSize.srcSize
         mCamera?.stopPreview()
         mCameraParameters.setPreviewSize(size.width, size.height)
-        setAutoFocusInternal(true)
-        mCamera?.parameters = mCameraParameters
-        mCamera?.startPreview()
+        setAutoFocusInternal()
+        mCamera?.let {
+            it.parameters = mCameraParameters
+            it.startPreview()
+        }
     }
 
 
@@ -88,8 +89,12 @@ class Camera1 : BaseCamera(), ICamera {
         camera: Camera,
         info: Camera.CameraInfo
     ) {
-        val rotation = mCameraInfo.orientation
-//        val rotation = activity.windowManager.defaultDisplay.rotation
+//        val rotation = mCameraInfo.orientation
+        val rotation =
+            if (mContext != null)
+                (mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
+                    .defaultDisplay.rotation
+            else 0
         var degrees = 0
         when (rotation) {
             Surface.ROTATION_0 -> degrees = 0
@@ -109,17 +114,17 @@ class Camera1 : BaseCamera(), ICamera {
         camera.setDisplayOrientation(result)
     }
 
-    private fun setAutoFocusInternal(autoFocus: Boolean): Boolean {
+    private fun setAutoFocusInternal(): Boolean {
         return if (mCamera != null) {
             val modes = mCameraParameters.supportedFocusModes
-            if (autoFocus && modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
-            } else if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
-                mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_FIXED
-            } else if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
-                mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_INFINITY
-            } else {
-                mCameraParameters.focusMode = modes[0]
+            when {
+                modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE) ->
+                    mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
+                modes.contains(Camera.Parameters.FOCUS_MODE_FIXED) ->
+                    mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_FIXED
+                modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY) ->
+                    mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_INFINITY
+                else -> mCameraParameters.focusMode = modes[0]
             }
             true
         } else {

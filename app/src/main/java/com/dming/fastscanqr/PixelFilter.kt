@@ -38,23 +38,23 @@ class PixelFilter(mContext: Context) : IShader {
 
     override fun onDraw(
         textureId: Int,
-        texMatrix: FloatArray,
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
+        texMatrix: FloatArray?
     ) {
-        onDraw(textureId, mMvpMatrix, texMatrix, x, y, width, height)
+        onDraw(textureId, x, y, width, height, mMvpMatrix, texMatrix?:mMvpMatrix)
     }
 
     override fun onDraw(
         textureId: Int,
-        verMatrix: FloatArray,
-        texMatrix: FloatArray,
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
+        verMatrix: FloatArray?,
+        texMatrix: FloatArray?
     ) {
         GLES20.glUseProgram(mProgram)
         GLES20.glEnableVertexAttribArray(mPosition)
@@ -91,7 +91,7 @@ class PixelFilter(mContext: Context) : IShader {
         private val VERTEX_INDEX = shortArrayOf(0, 1, 3, 2, 3, 1)
         private val VERTEX_POS =
             floatArrayOf(-1f, 1.0f, 0f, -1f, -1.0f, 0f, 1f, -1.0f, 0f, 1f, 1.0f, 0f)
-        val TEX_VERTEX = floatArrayOf(0f, 1f, 0f, 0f, 1f, 0f, 1f, 1f)
+        val TEX_VERTEX = floatArrayOf(0f, 0f, 0f, 1f, 1f, 1f, 1f, 0f)
     }
 
 }

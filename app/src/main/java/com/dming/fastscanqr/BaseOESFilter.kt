@@ -41,23 +41,23 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
 
     override fun onDraw(
         textureId: Int,
-        texMatrix: FloatArray,
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
+        texMatrix: FloatArray?
     ) {
-        onDraw(textureId, mMvpMatrix, texMatrix, x, y, width, height)
+        onDraw(textureId, x, y, width, height, mMvpMatrix, texMatrix?:mMvpMatrix)
     }
 
     override fun onDraw(
         textureId: Int,
-        verMatrix: FloatArray,
-        texMatrix: FloatArray,
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
+        verMatrix: FloatArray?,
+        texMatrix: FloatArray?
     ) {
         GLES20.glUseProgram(mProgram)
         GLES20.glEnableVertexAttribArray(mPosition)

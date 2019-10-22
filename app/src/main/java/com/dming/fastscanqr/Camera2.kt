@@ -23,12 +23,10 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.view.Surface
 import com.dming.fastscanqr.utils.DLog
-import java.lang.Exception
 
 @TargetApi(21)
 class Camera2 : BaseCamera(), ICamera {
 
-    private var mSurfaceTexture: SurfaceTexture? = null
     private var mCameraId: String? = null
     private var mCameraCharacteristics: CameraCharacteristics? = null
     private var mCamera: CameraDevice? = null
@@ -36,6 +34,7 @@ class Camera2 : BaseCamera(), ICamera {
     private var mPreviewRequestBuilder: CaptureRequest.Builder? = null
     private var mAutoFocus: Boolean = false
     private var mSurface: Surface? = null
+    private var mSurfaceTexture: SurfaceTexture? = null
 
     override fun init(context: Context) {
         mCameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -45,14 +44,15 @@ class Camera2 : BaseCamera(), ICamera {
     override fun open(textureId: Int) {
         collectCameraInfo()
         startOpeningCamera()
+        mSurfaceTexture = SurfaceTexture(textureId)
+        mSurface = Surface(mSurfaceTexture)
     }
 
-    override fun surfaceChange(surface: Surface, width: Int, height: Int) {
-        mSurface = surface
+    override fun surfaceChange(width: Int, height: Int) {
         viewWidth = width
         viewHeight = height
         if (mCamera != null) {
-            startCaptureSession(surface, width, height)
+            startCaptureSession(width, height)
         }
     }
 
@@ -60,8 +60,11 @@ class Camera2 : BaseCamera(), ICamera {
         mCaptureSession?.close()
         mCaptureSession = null
         mCamera?.close()
-        mCamera = null
+        mSurfaceTexture?.release()
+        mSurface?.release()
+        mSurfaceTexture = null
         mSurface = null
+        mCamera = null
         mPreviewRequestBuilder = null
     }
 
@@ -119,12 +122,11 @@ class Camera2 : BaseCamera(), ICamera {
                 val level = characteristics.get(
                     CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL
                 )
-//                if (level == null || level == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
-//                    continue
-//                }
+                if (level == null || level == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+                    DLog.i("INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY")
+                }
                 val internal = characteristics.get(CameraCharacteristics.LENS_FACING)
                     ?: throw NullPointerException("Unexpected state: LENS_FACING null")
-                DLog.i("internal: $internal")
                 if (internal == internalFacing) {
                     mCameraId = id
                     mCameraCharacteristics = characteristics
@@ -148,21 +150,21 @@ class Camera2 : BaseCamera(), ICamera {
         }
     }
 
-    private fun startCaptureSession(surface: Surface, width: Int, height: Int) {
-        DLog.i("startCaptureSession $surface $width $height")
+    private fun startCaptureSession(width: Int, height: Int) {
+        DLog.i("startCaptureSession $width $height")
         val mSensorOrientation =
             mCameraCharacteristics!!.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
         val cameraSize = getDealCameraSize(width, height, mSensorOrientation)
         mSurfaceTexture?.setDefaultBufferSize(cameraSize.width, cameraSize.height)
         try {
             mPreviewRequestBuilder = mCamera!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-            mPreviewRequestBuilder!!.addTarget(surface)
+            mPreviewRequestBuilder!!.addTarget(mSurface!!)
             DLog.i("createCaptureSession >>>")
-            mCamera!!.createCaptureSession(listOf(surface), mSessionCallback, null)
+            mCamera!!.createCaptureSession(listOf(mSurface), mSessionCallback, null)
             DLog.i("createCaptureSession >>> finish")
         } catch (e: Exception) {
             DLog.i("CameraAccessException: ${e.cause}")
-//            throw RuntimeException("Failed to start camera session")
+            throw RuntimeException("Failed to start camera session")
         }
 
     }
@@ -176,7 +178,7 @@ class Camera2 : BaseCamera(), ICamera {
                     DLog.i("startOpeningCamera onOpened")
                     mCamera = camera
                     if (mSurface != null && viewWidth != 0 && viewHeight != 0) {
-                        startCaptureSession(mSurface!!, viewWidth, viewHeight)
+                        startCaptureSession(viewWidth, viewHeight)
                     }
                 }
 

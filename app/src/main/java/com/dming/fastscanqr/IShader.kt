@@ -4,16 +4,16 @@ interface IShader {
 
     fun onChange(width: Int, height: Int)
 
-    fun onDraw(textureId: Int, texMatrix: FloatArray, x: Int, y: Int, width: Int, height: Int)
+    fun onDraw(textureId: Int, x: Int, y: Int, width: Int, height: Int, texMatrix: FloatArray?)
 
     fun onDraw(
         textureId: Int,
-        verMatrix: FloatArray,
-        texMatrix: FloatArray,
         x: Int,
         y: Int,
         width: Int,
-        height: Int
+        height: Int,
+        verMatrix: FloatArray?,
+        texMatrix: FloatArray?
     )
 
     fun onDestroy()
