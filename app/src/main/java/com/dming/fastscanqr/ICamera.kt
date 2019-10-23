@@ -10,4 +10,5 @@ interface ICamera {
     fun close()
     fun release()
     fun getSurfaceTexture(): SurfaceTexture?
+    fun getCameraSize(): CameraSize?
 }

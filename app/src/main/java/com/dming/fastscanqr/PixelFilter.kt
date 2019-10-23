@@ -3,6 +3,7 @@ package com.dming.fastscanqr
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.Matrix
+import com.dming.fastscanqr.utils.DLog
 import com.dming.fastscanqr.utils.ShaderHelper
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
@@ -34,7 +35,38 @@ class PixelFilter(mContext: Context) : IShader {
         Matrix.setIdentityM(mMvpMatrix, 0)
     }
 
-    override fun onChange(width: Int, height: Int) {}
+    override fun onChange(imgWidth: Int, imgHeight: Int,width: Int, height: Int) {
+        val imgRatio = 1.0f * imgHeight / imgWidth
+        val ratio = 1.0f * height / width
+        var imgH = 1.0f
+        var imgW = 1.0f
+        var h = 1.0f
+        var w = 1.0f
+        //
+        if (imgRatio >= 1) {
+            imgH = imgRatio
+        } else {
+            imgW = 1.0f / imgRatio
+        }
+        if (ratio >= 1) {
+            h = ratio
+        } else {
+            w = 1.0f / ratio
+        }
+        DLog.i("onChange111 imgH: $imgH  - imgW: $imgW >>> h: $h  - w =: $w")
+        val texH = imgH / h
+        val texW = imgW / w
+        DLog.i("onChange texH: $texH  - texW: $texW")
+        //
+        mPosFB = ShaderHelper.arrayToFloatBuffer(
+            floatArrayOf(
+                -texW, texH, 0f,
+                -texW, -texH, 0f,
+                texW, -texH, 0f,
+                texW, texH, 0f
+            )
+        )
+    }
 
     override fun onDraw(
         textureId: Int,

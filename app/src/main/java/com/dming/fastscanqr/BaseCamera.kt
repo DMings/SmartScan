@@ -10,6 +10,7 @@ open class BaseCamera {
     protected val mPreviewSizes: MutableList<CameraSize> = ArrayList()
     protected var viewWidth: Int = 0
     protected var viewHeight: Int = 0
+    protected var mCameraSize:CameraSize? = null
 
     protected fun getDealCameraSize(width: Int, height: Int, rotation: Int): CameraSize {
         val greaterThanView = TreeSet<CameraSize>()

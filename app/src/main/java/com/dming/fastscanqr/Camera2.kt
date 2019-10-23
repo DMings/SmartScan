@@ -75,6 +75,10 @@ class Camera2 : BaseCamera(), ICamera {
         return mSurfaceTexture
     }
 
+    override fun getCameraSize(): CameraSize? {
+        return mCameraSize
+    }
+
     private var mCameraManager: CameraManager? = null
 
     private val mSessionCallback = object : CameraCaptureSession.StateCallback() {
@@ -154,8 +158,8 @@ class Camera2 : BaseCamera(), ICamera {
         DLog.i("startCaptureSession $width $height")
         val mSensorOrientation =
             mCameraCharacteristics!!.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
-        val cameraSize = getDealCameraSize(width, height, mSensorOrientation)
-        mSurfaceTexture?.setDefaultBufferSize(cameraSize.width, cameraSize.height)
+        mCameraSize = getDealCameraSize(width, height, mSensorOrientation)
+        mSurfaceTexture?.setDefaultBufferSize(mCameraSize!!.width, mCameraSize!!.height)
         try {
             mPreviewRequestBuilder = mCamera!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
             mPreviewRequestBuilder!!.addTarget(mSurface!!)

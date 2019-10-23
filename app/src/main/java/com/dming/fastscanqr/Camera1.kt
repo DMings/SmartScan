@@ -71,10 +71,14 @@ class Camera1 : BaseCamera(), ICamera {
         return mSurfaceTexture
     }
 
+    override fun getCameraSize(): CameraSize? {
+        return mCameraSize
+    }
+
     private fun adjustCameraParameters(width: Int, height: Int) {
         Camera.getCameraInfo(mCameraId, mCameraInfo)
-        val suitableSize = getDealCameraSize(width, height, mCameraInfo.orientation)
-        val size = suitableSize.srcSize
+        mCameraSize = getDealCameraSize(width, height, mCameraInfo.orientation)
+        val size = mCameraSize!!.srcSize
         mCamera?.stopPreview()
         mCameraParameters.setPreviewSize(size.width, size.height)
         setAutoFocusInternal()

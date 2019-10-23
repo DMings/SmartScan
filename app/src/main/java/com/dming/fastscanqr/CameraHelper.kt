@@ -109,6 +109,9 @@ class CameraHelper {
             mFrameIds = FGLUtils.createFBO(width, height)
             //
             mCamera.surfaceChange(width, height)
+            val cameraSize = mCamera.getCameraSize()!!
+            mPreviewFilter.onChange(cameraSize.width, cameraSize.height, width, height)
+            mPixelFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             //
             mPixelHandler.post {
                 mPixelBuffer = ByteBuffer.allocate(width * height * 4)
