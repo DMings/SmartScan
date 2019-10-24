@@ -4,16 +4,15 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.SurfaceHolder
 import android.view.SurfaceHolder.Callback
-import android.widget.ImageView
 import com.dming.fastscanqr.utils.DLog
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.ChecksumException
+import com.google.zxing.FormatException
+import com.google.zxing.NotFoundException
+import com.google.zxing.common.GlobalHistogramBinarizer
+import com.google.zxing.qrcode.QRCodeReader
 import kotlinx.android.synthetic.main.activity_main.*
-import android.view.ViewTreeObserver
-import android.support.v4.app.SupportActivity
-import android.support.v4.app.SupportActivity.ExtraData
-import android.support.v4.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
-
+import java.nio.ByteBuffer
 
 
 class CameraActivity : AppCompatActivity() {
@@ -55,7 +54,22 @@ class CameraActivity : AppCompatActivity() {
 
         })
         showQRImg.setOnClickListener {
-            mCameraHelper.readPixels(it as ImageView)
+            mCameraHelper.setParseQRListener { width: Int, height: Int, grayByteBuffer: ByteBuffer ->
+                try {
+                    val start = System.currentTimeMillis()
+                    val source = GLRGBLuminanceSource(width, height, grayByteBuffer)
+                    val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
+                    val reader = QRCodeReader()
+                    val result = reader.decode(binaryBitmap)// 开始解析
+                    DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
+                } catch (e: NotFoundException) {
+//                e.printStackTrace()
+                } catch (e: ChecksumException) {
+                    e.printStackTrace()
+                } catch (e: FormatException) {
+                    e.printStackTrace()
+                }
+            }
         }
 //        glSurfaceView.setOnClickListener {
 //            try {

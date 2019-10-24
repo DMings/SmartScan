@@ -17,6 +17,8 @@ package com.dming.fastscanqr;
 
 import com.google.zxing.LuminanceSource;
 
+import java.nio.ByteBuffer;
+
 /**
  * This class is used to help decode images from files which arrive as RGB data from
  * an ARGB pixel array. It does not support rotation.
@@ -32,7 +34,7 @@ public final class GLRGBLuminanceSource extends LuminanceSource {
     private final int left;
     private final int top;
 
-    public GLRGBLuminanceSource(int width, int height, int[] pixels) {
+    public GLRGBLuminanceSource(int width, int height, ByteBuffer pixels) {
         super(width, height);
 
         dataWidth = width;
@@ -45,16 +47,23 @@ public final class GLRGBLuminanceSource extends LuminanceSource {
         //
         // Total number of pixels suffices, can ignore shape
         int size = width * height;
+        int srcSize = width * height * 4;
+        int i = 0;
         luminances = new byte[size];
-        for (int offset = 0; offset < size; offset++) {
-            int pixel = pixels[offset];
-            int r = (pixel >> 16) & 0xff; // red
-//            int g2 = (pixel >> 7) & 0x1fe; // 2 * green
-//            int b = pixel & 0xff; // blue
-            // Calculate green-favouring average cheaply
-//            luminances[offset] = (byte) ((r + g2 + b) / 4);
-            luminances[offset] = (byte) (r);
+        for (int offset = 0; offset < srcSize; offset += 4) {
+            luminances[i++] = pixels.get(offset);
         }
+//        int size = width * height;
+//        luminances = new byte[size];
+//        for (int offset = 0; offset < size; offset++) {
+//            int pixel = pixels[offset];
+//            int r = (pixel >> 16) & 0xff; // red
+////            int g2 = (pixel >> 7) & 0x1fe; // 2 * green
+////            int b = pixel & 0xff; // blue
+//            // Calculate green-favouring average cheaply
+////            luminances[offset] = (byte) ((r + g2 + b) / 4);
+//            luminances[offset] = (byte) (r);
+//        }
     }
 
     private GLRGBLuminanceSource(byte[] pixels,

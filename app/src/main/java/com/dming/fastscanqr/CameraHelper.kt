@@ -9,7 +9,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
-import android.widget.ImageView
 import com.dming.fastscanqr.utils.DLog
 import com.dming.fastscanqr.utils.EglHelper
 import com.dming.fastscanqr.utils.FGLUtils
@@ -48,6 +47,8 @@ class CameraHelper {
     private var mPixelTexture = -1
     //
     private lateinit var mPixelFilter: PixelFilter
+    //
+    private var readQRCode: ((width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit)? = null
 
     fun init(context: Context) {
         mGLThread = HandlerThread("GL")
@@ -78,11 +79,38 @@ class CameraHelper {
                 it.updateTexImage()
                 it.getTransformMatrix(mCameraMatrix)
                 //
+                mPixelLock.tryLock()
                 mPixelHandler.post {
                     if (mIsPixelInitSuccess) {
                         mPixelFilter.onDraw(mFrameIds[1], 0, 0, mWidth, mHeight, null)
                     }
                     mPixelEglHelper.swapBuffers()
+                    //
+                    try {
+                        mPixelLock.lock()
+                        val start = System.currentTimeMillis()
+                        mPixelBuffer!!.position(0)
+                        GLES20.glReadPixels(
+                            0,
+                            0,
+                            mWidth,
+                            mHeight,
+                            GLES20.GL_RGBA,
+                            GLES20.GL_UNSIGNED_BYTE,
+                            mPixelBuffer
+                        )
+                        DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
+                        mPixelBuffer?.rewind()
+//                        DLog.d("bitmap cost time: ${System.currentTimeMillis() - start}")
+                        if (readQRCode != null && mPixelBuffer != null) {
+                            this.readQRCode!!(mWidth, mHeight, mPixelBuffer!!)
+                        }
+                    } finally {
+                        mPixelLock.unlock()
+                    }
+                }
+                if (mPixelLock.isHeldByCurrentThread) {
+                    mPixelLock.unlock()
                 }
             }
             mPixelHandler.post {
@@ -152,28 +180,32 @@ class CameraHelper {
         mPixelThread.quit()
     }
 
-    fun readPixels(imageView: ImageView) {
-        mPixelHandler.post {
-            val start = System.currentTimeMillis()
-            mPixelBuffer!!.position(0)
-            GLES20.glReadPixels(
-                0,
-                0,
-                mWidth,
-                mHeight,
-                GLES20.GL_RGBA,
-                GLES20.GL_UNSIGNED_BYTE,
-                mPixelBuffer
-            )
-            DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
-            mPixelBuffer?.rewind()
-            mPixelBitmap!!.copyPixelsFromBuffer(mPixelBuffer)
-            DLog.d("bitmap cost time: ${System.currentTimeMillis() - start}")
-            (imageView.context as Activity).runOnUiThread {
-                imageView.setImageBitmap(mPixelBitmap)
-            }
-        }
+    fun setParseQRListener(readQRCode: (width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit) {
+        this.readQRCode = readQRCode
     }
+
+//    fun readPixels(imageView: ImageView) {
+//        mPixelHandler.post {
+//            //            val start = System.currentTimeMillis()
+////            mPixelBuffer!!.position(0)
+////            GLES20.glReadPixels(
+////                0,
+////                0,
+////                mWidth,
+////                mHeight,
+////                GLES20.GL_RGBA,
+////                GLES20.GL_UNSIGNED_BYTE,
+////                mPixelBuffer
+////            )
+////            DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
+////            mPixelBuffer?.rewind()
+////            mPixelBitmap!!.copyPixelsFromBuffer(mPixelBuffer)
+////            DLog.d("bitmap cost time: ${System.currentTimeMillis() - start}")
+//            (imageView.context as Activity).runOnUiThread {
+//                imageView.setImageBitmap(mPixelBitmap)
+//            }
+//        }
+//    }
 
 
 }

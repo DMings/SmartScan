@@ -56,10 +56,8 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
         } else {
             w = 1.0f / ratio
         }
-        DLog.i("onChange111 imgH: $imgH  - imgW: $imgW >>> h: $h  - w =: $w")
         val texH = imgH / h
         val texW = imgW / w
-        DLog.i("onChange texH: $texH  - texW: $texW")
         //
         mPosFB = ShaderHelper.arrayToFloatBuffer(
             floatArrayOf(
