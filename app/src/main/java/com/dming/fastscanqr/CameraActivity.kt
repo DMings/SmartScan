@@ -55,20 +55,20 @@ class CameraActivity : AppCompatActivity() {
         })
         showQRImg.setOnClickListener {
             mCameraHelper.setParseQRListener { width: Int, height: Int, grayByteBuffer: ByteBuffer ->
-                try {
-                    val start = System.currentTimeMillis()
-                    val source = GLRGBLuminanceSource(width, height, grayByteBuffer)
-                    val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
-                    val reader = QRCodeReader()
-                    val result = reader.decode(binaryBitmap)// 开始解析
-                    DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
-                } catch (e: NotFoundException) {
-//                e.printStackTrace()
-                } catch (e: ChecksumException) {
-                    e.printStackTrace()
-                } catch (e: FormatException) {
-                    e.printStackTrace()
-                }
+//                try {
+//                    val start = System.currentTimeMillis()
+//                    val source = GLRGBLuminanceSource(width, height, grayByteBuffer)
+//                    val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
+//                    val reader = QRCodeReader()
+//                    val result = reader.decode(binaryBitmap)// 开始解析
+//                    DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
+//                } catch (e: NotFoundException) {
+////                e.printStackTrace()
+//                } catch (e: ChecksumException) {
+//                    e.printStackTrace()
+//                } catch (e: FormatException) {
+//                    e.printStackTrace()
+//                }
             }
         }
 //        glSurfaceView.setOnClickListener {

@@ -39,6 +39,7 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
     }
 
     override fun onChange(imgWidth: Int, imgHeight: Int, width: Int, height: Int) {
+        DLog.i("onChange000 imgWidth: $imgWidth  - imgHeight: $imgHeight >>> width: $width  - height: $height")
         val imgRatio = 1.0f * imgHeight / imgWidth
         val ratio = 1.0f * height / width
         var imgH = 1.0f
@@ -56,8 +57,35 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
         } else {
             w = 1.0f / ratio
         }
-        val texH = imgH / h
-        val texW = imgW / w
+        DLog.i("onChange111 imgH: $imgH  - imgW: $imgW >>> h: $h  - w: $w")
+        var texH = imgH / h
+        var texW = imgW / w
+        DLog.i("onChange222 texH: $texH  - texW: $texW")
+        val texRatio = if (texH > texW) texW else texH
+        DLog.i("onChange texRatio: $texRatio")
+        if (texRatio < 1) {
+            if (texH > texW) {
+                if (texW < 1) {
+                    texH *= (1f / texW)
+                    texW = 1f
+                    DLog.i("onChangethis texH: $texH  - texW: $texW")
+                }
+            } else {
+                if (texH < 1) {
+                    texW *= (1f / texH)
+                    texH = 1f
+                }
+            }
+        } else if (texRatio > 1) {
+            if (texH > texW) {
+                texH /= texW
+                texW = 1f
+            } else {
+                texW /= texH
+                texH = 1f
+            }
+        }
+        DLog.i("onChange333 texH: $texH  - texW: $texW")
         //
         mPosFB = ShaderHelper.arrayToFloatBuffer(
             floatArrayOf(

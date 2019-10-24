@@ -99,7 +99,7 @@ class CameraHelper {
                             GLES20.GL_UNSIGNED_BYTE,
                             mPixelBuffer
                         )
-                        DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
+//                        DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
                         mPixelBuffer?.rewind()
 //                        DLog.d("bitmap cost time: ${System.currentTimeMillis() - start}")
                         if (readQRCode != null && mPixelBuffer != null) {
