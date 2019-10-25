@@ -36,25 +36,52 @@ class PixelFilter(mContext: Context) : IShader {
     }
 
     override fun onChange(imgWidth: Int, imgHeight: Int,width: Int, height: Int) {
-        val imgRatio = 1.0f * imgHeight / imgWidth
-        val ratio = 1.0f * height / width
-        var imgH = 1.0f
-        var imgW = 1.0f
-        var h = 1.0f
-        var w = 1.0f
-        //
-        if (imgRatio >= 1) {
-            imgH = imgRatio
+//        val imgRatio = 1.0f * imgHeight / imgWidth
+//        val ratio = 1.0f * height / width
+//        var imgH = 1.0f
+//        var imgW = 1.0f
+//        var h = 1.0f
+//        var w = 1.0f
+//        //
+//        if (imgRatio >= 1) {
+//            imgH = imgRatio
+//        } else {
+//            imgW = 1.0f / imgRatio
+//        }
+//        if (ratio >= 1) {
+//            h = ratio
+//        } else {
+//            w = 1.0f / ratio
+//        }
+//        val texH = imgH / h
+//        val texW = imgW / w
+
+        DLog.i("onChange000 imgWidth: $imgWidth  - imgHeight: $imgHeight >>> width: $width  - height: $height")
+        var texH = 1f
+        var texW = 1f
+        var who = 1
+        if(imgHeight > imgWidth && height > width){
+            val imgRatio = 1f * imgHeight / imgWidth
+            val ratio = 1f * width / height
+            texH = imgRatio * ratio
+            who = 1
+        }else if(imgWidth > imgHeight && width > height){
+            val imgRatio = 1f * imgWidth / imgHeight
+            val ratio = 1f * height / width
+            texW = imgRatio * ratio
+            who = 2
+        } else if(imgHeight > imgWidth && width > height){
+            val imgRatio = 1f * imgHeight / imgWidth
+            val ratio = 1f * width / height
+            texH = ratio * imgRatio
+            who = 3
         } else {
-            imgW = 1.0f / imgRatio
+            val imgRatio = 1f * imgWidth / imgHeight
+            val ratio = 1f * height / width
+            texW = imgRatio * ratio
+            who = 4
         }
-        if (ratio >= 1) {
-            h = ratio
-        } else {
-            w = 1.0f / ratio
-        }
-        val texH = imgH / h
-        val texW = imgW / w
+        DLog.i("onChange333 texH: $texH  - texW: $texW who: $who")
         //
         mPosFB = ShaderHelper.arrayToFloatBuffer(
             floatArrayOf(

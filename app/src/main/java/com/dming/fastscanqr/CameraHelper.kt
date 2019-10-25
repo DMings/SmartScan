@@ -3,8 +3,10 @@ package com.dming.fastscanqr
 import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
+import android.opengl.GLUtils
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
@@ -23,8 +25,8 @@ class CameraHelper {
     //
     private lateinit var mGLThread: HandlerThread
     private lateinit var mGLHandler: Handler
-    private lateinit var mPreviewFilter: PreviewFilter
-    private lateinit var mLuminanceFilter: LuminanceFilter
+    private lateinit var mPreviewFilter: IShader
+    private lateinit var mLuminanceFilter: IShader
     private var mTextureId: Int = 0
     private val mEglHelper = EglHelper()
     //
@@ -46,11 +48,15 @@ class CameraHelper {
     private var mFrameIds = IntArray(2)
     private var mPixelTexture = -1
     //
-    private lateinit var mPixelFilter: PixelFilter
+    private lateinit var mPixelFilter: IShader
     //
     private var readQRCode: ((width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit)? = null
+    //
+    private var mTestTexture = -1
+    private var mContext:Context? = null
 
     fun init(context: Context) {
+        mContext = context
         mGLThread = HandlerThread("GL")
         mPixelThread = HandlerThread("QR")
         mGLThread.start()
@@ -74,7 +80,7 @@ class CameraHelper {
                 mLuminanceFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
                 //
-                mPreviewFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
+                mPreviewFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight,mCameraMatrix)
                 mEglHelper.swapBuffers()
                 it.updateTexImage()
                 it.getTransformMatrix(mCameraMatrix)
@@ -138,6 +144,14 @@ class CameraHelper {
             //
             mCamera.surfaceChange(width, height)
             val cameraSize = mCamera.getCameraSize()!!
+
+//            mTestTexture = FGLUtils.createTexture()
+//            val srcBitmap = BitmapFactory.decodeStream(mContext!!.assets.open("test_qr.png"))
+//            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTestTexture)
+//            GLUtils.texImage2D(mTestTexture,0,srcBitmap,0)
+//            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+//            val cameraSize = CameraSize(srcBitmap.width,srcBitmap.height)
+
             mPreviewFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             mPixelFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             //
