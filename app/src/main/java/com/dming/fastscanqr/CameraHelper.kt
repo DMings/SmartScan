@@ -88,7 +88,7 @@ class CameraHelper {
                 mPixelLock.tryLock()
                 mPixelHandler.post {
                     if (mIsPixelInitSuccess) {
-                        mPixelFilter.onDraw(mFrameIds[1], 0, 0, mWidth, mHeight, null)
+//                        mPixelFilter.onDraw(mFrameIds[1], 0, 0, mWidth, mHeight, null)
                     }
                     mPixelEglHelper.swapBuffers()
                     //
@@ -148,8 +148,10 @@ class CameraHelper {
 //            mTestTexture = FGLUtils.createTexture()
 //            val srcBitmap = BitmapFactory.decodeStream(mContext!!.assets.open("test_qr.png"))
 //            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTestTexture)
-//            GLUtils.texImage2D(mTestTexture,0,srcBitmap,0)
+//            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D,0,srcBitmap,0)
 //            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+//            srcBitmap.recycle()
+//            FGLUtils.glCheckErr("texImage2D>>>>")
 //            val cameraSize = CameraSize(srcBitmap.width,srcBitmap.height)
 
             mPreviewFilter.onChange(cameraSize.width, cameraSize.height, width, height)

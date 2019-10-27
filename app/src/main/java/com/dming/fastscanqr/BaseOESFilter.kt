@@ -24,6 +24,9 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
     private var uMvpMatrix: Int = 0
     private var uTexMatrix: Int = 0
     private var mMvpMatrix = FloatArray(16)
+    //
+    var texH = 1f
+    var texW = 1f
 
     init {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX)
@@ -40,87 +43,46 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
 
     override fun onChange(imgWidth: Int, imgHeight: Int, width: Int, height: Int) {
         DLog.i("onChange000 imgWidth: $imgWidth  - imgHeight: $imgHeight >>> width: $width  - height: $height")
-        var texH = 1f
-        var texW = 1f
-        var who = 1
-        if(imgHeight > imgWidth && height > width){
-            val imgRatio = 1f * imgHeight / imgWidth
-            val ratio = 1f * width / height
-            texH = imgRatio * ratio
-            who = 1
-        }else if(imgWidth > imgHeight && width > height){
-            val imgRatio = 1f * imgWidth / imgHeight
-            val ratio = 1f * height / width
-            texW = imgRatio * ratio
-            who = 2
-        } else if(imgHeight > imgWidth && width > height){
-            val imgRatio = 1f * imgHeight / imgWidth
-            val ratio = 1f * width / height
-            texH = ratio * imgRatio
-            who = 3
+        var imgHRatio = 1f
+        var imgWRatio = 1f
+        if (imgWidth > imgHeight) {
+            imgHRatio = 1f * imgHeight / imgWidth
         } else {
-            val imgRatio = 1f * imgWidth / imgHeight
-            val ratio = 1f * height / width
-            texW = imgRatio * ratio
-            who = 4
+            imgWRatio = 1f * imgWidth / imgHeight
         }
-
-
-//        val imgRatio = 1.0f * imgHeight / imgWidth
-//        val ratio = 1.0f * height / width
-//        var imgH = 1.0f
-//        var imgW = 1.0f
-//        var h = 1.0f
-//        var w = 1.0f
-//        //
-//        if (imgRatio >= 1) {
-//            imgH = imgRatio
-//        } else {
-//            imgW = 1.0f / imgRatio
-//        }
-//        if (ratio >= 1) {
-//            h = ratio
-//        } else {
-//            w = 1.0f / ratio
-//        }
-//        DLog.i("onChange111 imgH: $imgH  - imgW: $imgW >>> h: $h  - w: $w")
-//        var texH = imgH / h
-//        var texW = imgW / w
-//        DLog.i("onChange222 texH: $texH  - texW: $texW")
-//        val texRatio = if (texH > texW) texW else texH
-//        DLog.i("onChange texRatio: $texRatio")
-//        if (texRatio < 1) {
-//            if (texH > texW) {
-//                if (texW < 1) {
-//                    texH *= (1f / texW)
-//                    texW = 1f
-//                    DLog.i("onChangethis texH: $texH  - texW: $texW")
-//                }
-//            } else {
-//                if (texH < 1) {
-//                    texW *= (1f / texH)
-//                    texH = 1f
-//                }
-//            }
-//        } else if (texRatio > 1) {
-//            if (texH > texW) {
-//                texH /= texW
-//                texW = 1f
-//            } else {
-//                texW /= texH
-//                texH = 1f
-//            }
-//        }
-        DLog.i("onChange333 texH: $texH  - texW: $texW who: $who")
+        DLog.i("111 imgHRatio: $imgHRatio  - imgWRatio: $imgWRatio")
+        var ratio = 0f
+        if (width > height) {
+            ratio = 1f * height / width
+            texW = imgWRatio * ratio
+            texH = imgHRatio
+        } else {
+            ratio = 1f * width / height
+            texH = imgHRatio * ratio
+            texW = imgWRatio
+        }
+        DLog.i("222 texH: $texH  - texW: $texW ratio:$ratio")
+        if (texW > texH) {
+            ratio = 1f / texH
+            texH = 1f
+            texW *= ratio
+        } else {
+            ratio = 1f / texW
+            texW = 1f
+            texH *= ratio
+        }
+        DLog.i("333 texH: $texH  - texW: $texW")
         //
-        mPosFB = ShaderHelper.arrayToFloatBuffer(
-            floatArrayOf(
-                -texW, texH, 0f,
-                -texW, -texH, 0f,
-                texW, -texH, 0f,
-                texW, texH, 0f
-            )
-        )
+//        mPosFB = ShaderHelper.arrayToFloatBuffer(
+//            floatArrayOf(
+//                -texW, texH, 0f,
+//                -texW, -texH, 0f,
+//                texW, -texH, 0f,
+//                texW, texH, 0f
+//            )
+//        )
+        Matrix.setIdentityM(mMvpMatrix, 0)
+        Matrix.scaleM(mMvpMatrix, 0, texW, texH, 1f)
     }
 
     override fun onDraw(
