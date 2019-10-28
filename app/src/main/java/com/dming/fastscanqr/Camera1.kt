@@ -76,8 +76,13 @@ class Camera1 : BaseCamera(), ICamera {
     }
 
     private fun adjustCameraParameters(width: Int, height: Int) {
+        val rotation =
+            if (mContext != null)
+                (mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
+                    .defaultDisplay.rotation
+            else 0
         Camera.getCameraInfo(mCameraId, mCameraInfo)
-        mCameraSize = getDealCameraSize(width, height, mCameraInfo.orientation)
+        mCameraSize = getDealCameraSize(width, height, rotation)
         val size = mCameraSize!!.srcSize
         mCamera?.stopPreview()
         mCameraParameters.setPreviewSize(size.width, size.height)

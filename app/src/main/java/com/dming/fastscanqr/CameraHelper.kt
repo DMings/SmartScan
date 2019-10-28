@@ -76,6 +76,7 @@ class CameraHelper {
             mLuminanceFilter = LuminanceFilter(activity)
             mCamera.open(mTextureId)
             mCamera.getSurfaceTexture()?.setOnFrameAvailableListener {
+                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameIds[0])
                 mLuminanceFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
