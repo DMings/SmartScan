@@ -64,25 +64,17 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
             texW = imgWRatio
         }
         DLog.i("222 texH: $texH  - texW: $texW ratio:$ratio")
-//        if (texW > texH) {
-//            ratio = 1f / texH
-//            texH = 1f
-//            texW *= ratio
-//        } else {
-//            ratio = 1f / texW
-//            texW = 1f
-//            texH *= ratio
-//        }
-//        DLog.i("333 texH: $texH  - texW: $texW")
+        if (texW > texH) {
+            ratio = 1f / texH
+            texH = 1f
+            texW *= ratio
+        } else {
+            ratio = 1f / texW
+            texW = 1f
+            texH *= ratio
+        }
+        DLog.i("333 texH: $texH  - texW: $texW")
         //
-//        mPosFB = ShaderHelper.arrayToFloatBuffer(
-//            floatArrayOf(
-//                -texW, texH, 0f,
-//                -texW, -texH, 0f,
-//                texW, -texH, 0f,
-//                texW, texH, 0f
-//            )
-//        )
         Matrix.setIdentityM(mMvpMatrix, 0)
         Matrix.scaleM(mMvpMatrix, 0, texW, texH, 1f)
     }

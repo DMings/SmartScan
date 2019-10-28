@@ -76,13 +76,9 @@ class Camera1 : BaseCamera(), ICamera {
     }
 
     private fun adjustCameraParameters(width: Int, height: Int) {
-        val rotation =
-            if (mContext != null)
-                (mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                    .defaultDisplay.rotation
-            else 0
+        val degree = getDegreeByDisplayRotation()
         Camera.getCameraInfo(mCameraId, mCameraInfo)
-        mCameraSize = getDealCameraSize(width, height, rotation)
+        mCameraSize = getDealCameraSize(width, height, degree)
         val size = mCameraSize!!.srcSize
         mCamera?.stopPreview()
         mCameraParameters.setPreviewSize(size.width, size.height)
@@ -99,6 +95,20 @@ class Camera1 : BaseCamera(), ICamera {
         info: Camera.CameraInfo
     ) {
 //        val rotation = mCameraInfo.orientation
+        val degree = getDegreeByDisplayRotation()
+        var result: Int
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degree) % 360
+            result = (360 - result) % 360   // compensate the mirror
+        } else {
+            // back-facing
+            result = (info.orientation - degree + 360) % 360
+        }
+        DLog.i("result: $result")
+        camera.setDisplayOrientation(result)
+    }
+
+    private fun getDegreeByDisplayRotation():Int{
         val rotation =
             if (mContext != null)
                 (mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
@@ -111,16 +121,7 @@ class Camera1 : BaseCamera(), ICamera {
             Surface.ROTATION_180 -> degrees = 180
             Surface.ROTATION_270 -> degrees = 270
         }
-        var result: Int
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360
-            result = (360 - result) % 360   // compensate the mirror
-        } else {
-            // back-facing
-            result = (info.orientation - degrees + 360) % 360
-        }
-        DLog.i("result: $result")
-        camera.setDisplayOrientation(result)
+        return degrees
     }
 
     private fun setAutoFocusInternal(): Boolean {

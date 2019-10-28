@@ -14,12 +14,13 @@ open class BaseCamera {
 
     protected fun getDealCameraSize(width: Int, height: Int, rotation: Int): CameraSize {
         val lessThanView = ArrayList<CameraSize>()
-        DLog.i("getDealCameraSize width>  $width height>> $height")
+        DLog.i("getDealCameraSize width>  $width height>> $height rotation: $rotation")
         for (size in mPreviewSizes) {
-            if (rotation == 90 || rotation == 270) { // width > height normal
-                lessThanView.add(CameraSize(size.height, size.width, size)) // ?
-            } else { // width < height normal  0 180
+//            DLog.i("preview size:$size")
+            if (rotation == 90 || rotation == 270) { // normal
                 lessThanView.add(CameraSize(size.width, size.height, size))
+            } else { // 0 180
+                lessThanView.add(CameraSize(size.height, size.width, size)) // ?
             }
         }
         var cSize: CameraSize? = null
@@ -36,7 +37,7 @@ open class BaseCamera {
         if (cSize == null) {
             cSize = lessThanView[0]
         }
-        DLog.i("suitableSize>" + cSize!!.toString())
+        DLog.i("suitableSize>$cSize")
         return cSize
     }
 

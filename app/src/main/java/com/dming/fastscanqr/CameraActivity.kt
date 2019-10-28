@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.SurfaceHolder
 import android.view.SurfaceHolder.Callback
+import android.widget.ImageView
 import com.dming.fastscanqr.utils.DLog
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.ChecksumException
@@ -54,7 +55,8 @@ class CameraActivity : AppCompatActivity() {
 
         })
         showQRImg.setOnClickListener {
-            mCameraHelper.setParseQRListener { width: Int, height: Int, grayByteBuffer: ByteBuffer ->
+            mCameraHelper.readPixels(it as ImageView)
+//            mCameraHelper.setParseQRListener { width: Int, height: Int, grayByteBuffer: ByteBuffer ->
 //                try {
 //                    val start = System.currentTimeMillis()
 //                    val source = GLRGBLuminanceSource(width, height, grayByteBuffer)
@@ -113,7 +115,7 @@ class CameraActivity : AppCompatActivity() {
 //                    dnPlayer.onConfigurationChanged(widthPixels, heightPixels)
 //                }
 //            })
-    }
+//    }
 
     override fun onDestroy() {
         super.onDestroy()
