@@ -158,7 +158,7 @@ class Camera2 : BaseCamera(), ICamera {
         DLog.i("startCaptureSession $width $height")
         val mSensorOrientation =
             mCameraCharacteristics!!.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
-        mCameraSize = getDealCameraSize(width, height, mSensorOrientation)
+        dealCameraSize(width, height, mSensorOrientation)
         mSurfaceTexture?.setDefaultBufferSize(mCameraSize!!.width, mCameraSize!!.height)
         try {
             mPreviewRequestBuilder = mCamera!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)

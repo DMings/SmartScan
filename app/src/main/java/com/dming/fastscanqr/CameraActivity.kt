@@ -1,5 +1,6 @@
 package com.dming.fastscanqr
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.SurfaceHolder
@@ -73,6 +74,12 @@ class CameraActivity : AppCompatActivity() {
             mCameraHelper.readPixels(it as ImageView)
         }
     }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        DLog.i("onConfigurationChanged: ${newConfig!!.orientation}")
+    }
+
 //        if (getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
 //            fullBtn.setImageResource(R.drawable.ic_button_zoom);
 //            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);

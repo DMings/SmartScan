@@ -10,9 +10,9 @@ open class BaseCamera {
     protected val mPreviewSizes: MutableList<CameraSize> = ArrayList()
     protected var viewWidth: Int = 0
     protected var viewHeight: Int = 0
-    protected var mCameraSize: CameraSize? = null
+    protected var mCameraSize: CameraSize = CameraSize(0,0)
 
-    protected fun getDealCameraSize(width: Int, height: Int, rotation: Int): CameraSize {
+    protected fun dealCameraSize(width: Int, height: Int, rotation: Int) {
         val lessThanView = ArrayList<CameraSize>()
         DLog.i("getDealCameraSize width>  $width height>> $height rotation: $rotation")
         for (size in mPreviewSizes) {
@@ -38,7 +38,7 @@ open class BaseCamera {
             cSize = lessThanView[0]
         }
         DLog.i("suitableSize>$cSize")
-        return cSize
+        mCameraSize =  cSize
     }
 
 }

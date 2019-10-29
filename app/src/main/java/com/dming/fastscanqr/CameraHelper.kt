@@ -9,6 +9,7 @@ import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.widget.ImageView
+import com.dming.fastscanqr.utils.DLog
 import com.dming.fastscanqr.utils.EglHelper
 import com.dming.fastscanqr.utils.FGLUtils
 import java.nio.ByteBuffer
@@ -36,7 +37,7 @@ class CameraHelper {
     private var mHeight: Int = 0
     //
     private var mPixelBuffer: ByteBuffer? = null
-//    private var mPixelBitmap: Bitmap? = null
+    //    private var mPixelBitmap: Bitmap? = null
     private val mPixelEglHelper = EglHelper()
 
     private var mPixelSurface: Surface? = null
@@ -85,39 +86,7 @@ class CameraHelper {
                 it.updateTexImage()
                 it.getTransformMatrix(mCameraMatrix)
                 //
-                mPixelLock.tryLock()
-                mPixelHandler.post {
-                    if (mIsPixelInitSuccess && mFrameIds != null) {
-                        mPixelFilter.onDraw(mFrameIds!![1], 0, 0, mWidth, mHeight, null)
-                    }
-                    mPixelEglHelper.swapBuffers()
-                    //
-                    try {
-                        mPixelLock.lock()
-                        val start = System.currentTimeMillis()
-                        mPixelBuffer!!.position(0)
-                        GLES20.glReadPixels(
-                            0,
-                            0,
-                            mWidth,
-                            mHeight,
-                            GLES20.GL_RGBA,
-                            GLES20.GL_UNSIGNED_BYTE,
-                            mPixelBuffer
-                        )
-//                        DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
-                        mPixelBuffer?.rewind()
-//                        DLog.d("bitmap cost time: ${System.currentTimeMillis() - start}")
-                        if (readQRCode != null && mPixelBuffer != null) {
-                            this.readQRCode!!(mWidth, mHeight, mPixelBuffer!!)
-                        }
-                    } finally {
-                        mPixelLock.unlock()
-                    }
-                }
-                if (mPixelLock.isHeldByCurrentThread) {
-                    mPixelLock.unlock()
-                }
+                parseQRCode()
             }
             mPixelHandler.post {
                 mPixelTexture = FGLUtils.createOESTexture()
@@ -146,7 +115,7 @@ class CameraHelper {
             mFrameIds = FGLUtils.createFBO(width, height)
             //
             mCamera.surfaceChange(width, height)
-            val cameraSize = mCamera.getCameraSize()!!
+            val cameraSize = mCamera.getCameraSize()
 
             mPreviewFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             mLuminanceFilter.onChange(cameraSize.width, cameraSize.height, width, height)
@@ -192,6 +161,46 @@ class CameraHelper {
         mCamera.release()
         mGLThread.quit()
         mPixelThread.quit()
+        mGLThread.join()
+        mPixelThread.join()
+    }
+
+    private fun parseQRCode() {
+        mPixelLock.tryLock()
+        mPixelHandler.post {
+            if (mIsPixelInitSuccess && mFrameIds != null) {
+                mPixelFilter.onDraw(mFrameIds!![1], 0, 0, mWidth, mHeight, null)
+            }
+            mPixelEglHelper.swapBuffers()
+            //
+            try {
+                mPixelLock.lock()
+                mPixelBuffer?.let { byteBuffer ->
+                    val start = System.currentTimeMillis()
+                    byteBuffer.position(0)
+                    GLES20.glReadPixels(
+                        0,
+                        0,
+                        mWidth,
+                        mHeight,
+                        GLES20.GL_RGBA,
+                        GLES20.GL_UNSIGNED_BYTE,
+                        byteBuffer
+                    )
+//                    DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
+                    byteBuffer.rewind()
+                    readQRCode?.let { readQRCode ->
+                        readQRCode(mWidth, mHeight, byteBuffer)
+                    }
+//                    DLog.d("qr cost time: ${System.currentTimeMillis() - start}")
+                }
+            } finally {
+                mPixelLock.unlock()
+            }
+        }
+        if (mPixelLock.isHeldByCurrentThread) {
+            mPixelLock.unlock()
+        }
     }
 
     fun setParseQRListener(readQRCode: (width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit) {

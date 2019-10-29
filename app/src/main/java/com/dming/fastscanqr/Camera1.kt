@@ -42,9 +42,8 @@ class Camera1 : BaseCamera(), ICamera {
         for (size in mCameraParameters.supportedPreviewSizes) {
             mPreviewSizes.add(CameraSize(size.width, size.height))
         }
-        if (mCamera != null) {
-            mCamera?.setPreviewTexture(mSurfaceTexture)
-            setCameraDisplayOrientation(mCamera!!, mCameraInfo)
+        mCamera?.let {
+            it.setPreviewTexture(mSurfaceTexture)
         }
         DLog.d("openCamera cost time: ${System.currentTimeMillis() - start}")
     }
@@ -71,16 +70,19 @@ class Camera1 : BaseCamera(), ICamera {
         return mSurfaceTexture
     }
 
-    override fun getCameraSize(): CameraSize? {
+    override fun getCameraSize(): CameraSize {
         return mCameraSize
     }
 
     private fun adjustCameraParameters(width: Int, height: Int) {
         val degree = getCameraRotation(mCameraInfo)
         Camera.getCameraInfo(mCameraId, mCameraInfo)
-        mCameraSize = getDealCameraSize(width, height, degree)
-        val size = mCameraSize!!.srcSize
-        mCamera?.stopPreview()
+        dealCameraSize(width, height, degree)
+        val size = mCameraSize.srcSize
+        mCamera?.let {
+            it.stopPreview()
+            it.setDisplayOrientation(degree)
+        }
         mCameraParameters.setPreviewSize(size.width, size.height)
         setAutoFocusInternal()
         mCamera?.let {
@@ -89,11 +91,6 @@ class Camera1 : BaseCamera(), ICamera {
         }
     }
 
-
-    private fun setCameraDisplayOrientation(camera: Camera, info: Camera.CameraInfo) {
-        val result = getCameraRotation(info)
-        camera.setDisplayOrientation(result)
-    }
 
     private fun getCameraRotation(info: Camera.CameraInfo): Int {
         val rotation =
