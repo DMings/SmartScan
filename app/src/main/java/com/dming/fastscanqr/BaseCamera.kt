@@ -18,9 +18,9 @@ open class BaseCamera {
         for (size in mPreviewSizes) {
 //            DLog.i("preview size:$size")
             if (rotation == 90 || rotation == 270) { // normal
-                lessThanView.add(CameraSize(size.width, size.height, size))
-            } else { // 0 180
                 lessThanView.add(CameraSize(size.height, size.width, size)) // ?
+            } else { // 0 180
+                lessThanView.add(CameraSize(size.width, size.height, size))
             }
         }
         var cSize: CameraSize? = null

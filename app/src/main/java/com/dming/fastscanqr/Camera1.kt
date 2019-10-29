@@ -76,7 +76,7 @@ class Camera1 : BaseCamera(), ICamera {
     }
 
     private fun adjustCameraParameters(width: Int, height: Int) {
-        val degree = getDegreeByDisplayRotation()
+        val degree = getCameraRotation(mCameraInfo)
         Camera.getCameraInfo(mCameraId, mCameraInfo)
         mCameraSize = getDealCameraSize(width, height, degree)
         val size = mCameraSize!!.srcSize
@@ -90,12 +90,24 @@ class Camera1 : BaseCamera(), ICamera {
     }
 
 
-    private fun setCameraDisplayOrientation(
-        camera: Camera,
-        info: Camera.CameraInfo
-    ) {
-//        val rotation = mCameraInfo.orientation
-        val degree = getDegreeByDisplayRotation()
+    private fun setCameraDisplayOrientation(camera: Camera, info: Camera.CameraInfo) {
+        val result = getCameraRotation(info)
+        camera.setDisplayOrientation(result)
+    }
+
+    private fun getCameraRotation(info: Camera.CameraInfo): Int {
+        val rotation =
+            if (mContext != null)
+                (mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
+                    .defaultDisplay.rotation
+            else 0
+        var degree = 0
+        when (rotation) {
+            Surface.ROTATION_0 -> degree = 0
+            Surface.ROTATION_90 -> degree = 90
+            Surface.ROTATION_180 -> degree = 180
+            Surface.ROTATION_270 -> degree = 270
+        }
         var result: Int
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             result = (info.orientation + degree) % 360
@@ -105,23 +117,7 @@ class Camera1 : BaseCamera(), ICamera {
             result = (info.orientation - degree + 360) % 360
         }
         DLog.i("result: $result")
-        camera.setDisplayOrientation(result)
-    }
-
-    private fun getDegreeByDisplayRotation():Int{
-        val rotation =
-            if (mContext != null)
-                (mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                    .defaultDisplay.rotation
-            else 0
-        var degrees = 0
-        when (rotation) {
-            Surface.ROTATION_0 -> degrees = 0
-            Surface.ROTATION_90 -> degrees = 90
-            Surface.ROTATION_180 -> degrees = 180
-            Surface.ROTATION_270 -> degrees = 270
-        }
-        return degrees
+        return result
     }
 
     private fun setAutoFocusInternal(): Boolean {

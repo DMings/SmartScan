@@ -25,7 +25,7 @@ class CameraActivity : AppCompatActivity() {
 //    }
 
     private val mCameraHelper: CameraHelper = CameraHelper()
-
+    private val mReader = QRCodeReader()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +34,7 @@ class CameraActivity : AppCompatActivity() {
         glSurfaceView.holder.addCallback(object : Callback {
 
             override fun surfaceCreated(holder: SurfaceHolder?) {
-                DLog.i("DMUI", "surfaceCreated")
+                DLog.i("surfaceCreated")
                 mCameraHelper.surfaceCreated(this@CameraActivity, holder)
             }
 
@@ -49,54 +49,30 @@ class CameraActivity : AppCompatActivity() {
             }
 
             override fun surfaceDestroyed(holder: SurfaceHolder?) {
-                DLog.i("DMUI", "surfaceDestroyed")
+                DLog.i("surfaceDestroyed")
                 mCameraHelper.surfaceDestroyed()
             }
 
         })
-        showQRImg.setOnClickListener {
-            mCameraHelper.readPixels(it as ImageView)
-//            mCameraHelper.setParseQRListener { width: Int, height: Int, grayByteBuffer: ByteBuffer ->
-//                try {
-//                    val start = System.currentTimeMillis()
-//                    val source = GLRGBLuminanceSource(width, height, grayByteBuffer)
-//                    val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
-//                    val reader = QRCodeReader()
-//                    val result = reader.decode(binaryBitmap)// 开始解析
-//                    DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
-//                } catch (e: NotFoundException) {
-////                e.printStackTrace()
-//                } catch (e: ChecksumException) {
-//                    e.printStackTrace()
-//                } catch (e: FormatException) {
-//                    e.printStackTrace()
-//                }
+        mCameraHelper.setParseQRListener { width: Int, height: Int, grayByteBuffer: ByteBuffer ->
+            try {
+                val start = System.currentTimeMillis()
+                val source = GLRGBLuminanceSource(width, height, grayByteBuffer)
+                val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
+                val result = mReader.decode(binaryBitmap)// 开始解析
+                DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
+            } catch (e: NotFoundException) {
+//                e.printStackTrace()
+            } catch (e: ChecksumException) {
+                e.printStackTrace()
+            } catch (e: FormatException) {
+                e.printStackTrace()
             }
         }
-//        glSurfaceView.setOnClickListener {
-//            try {
-//                val srcBitmap = BitmapFactory.decodeStream(assets.open("test_qr.png"))
-//                showQRImg.setImageBitmap(srcBitmap)
-//                val width = srcBitmap.width
-//                val height = srcBitmap.height
-//                val pixels = IntArray(width * height)
-//                srcBitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-//                val source = GLRGBLuminanceSource(width, height, pixels)
-//                val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
-//                val reader = QRCodeReader()
-//                val result = reader.decode(binaryBitmap)// 开始解析
-//                Log.i("DMUI", "result: ${result.text}")
-//            } catch (e: IOException) {
-//                e.printStackTrace()
-//            } catch (e: NotFoundException) {
-//                e.printStackTrace()
-//            } catch (e: ChecksumException) {
-//                e.printStackTrace()
-//            } catch (e: FormatException) {
-//                e.printStackTrace()
-//            }
-//        }
-
+        showQRImg.setOnClickListener {
+            mCameraHelper.readPixels(it as ImageView)
+        }
+    }
 //        if (getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
 //            fullBtn.setImageResource(R.drawable.ic_button_zoom);
 //            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);

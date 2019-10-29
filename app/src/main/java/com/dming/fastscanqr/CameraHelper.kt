@@ -2,7 +2,6 @@ package com.dming.fastscanqr
 
 import android.app.Activity
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
 import android.os.Handler
@@ -10,7 +9,6 @@ import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.widget.ImageView
-import com.dming.fastscanqr.utils.DLog
 import com.dming.fastscanqr.utils.EglHelper
 import com.dming.fastscanqr.utils.FGLUtils
 import java.nio.ByteBuffer
@@ -38,7 +36,7 @@ class CameraHelper {
     private var mHeight: Int = 0
     //
     private var mPixelBuffer: ByteBuffer? = null
-    private var mPixelBitmap: Bitmap? = null
+//    private var mPixelBitmap: Bitmap? = null
     private val mPixelEglHelper = EglHelper()
 
     private var mPixelSurface: Surface? = null
@@ -150,22 +148,14 @@ class CameraHelper {
             mCamera.surfaceChange(width, height)
             val cameraSize = mCamera.getCameraSize()!!
 
-//            mTestTexture = FGLUtils.createTexture()
-//            val srcBitmap = BitmapFactory.decodeStream(mContext!!.assets.open("test_qr.png"))
-//            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTestTexture)
-//            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D,0,srcBitmap,0)
-//            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-//            srcBitmap.recycle()
-//            FGLUtils.glCheckErr("texImage2D>>>>")
-//            val cameraSize = CameraSize(srcBitmap.width,srcBitmap.height)
-
             mPreviewFilter.onChange(cameraSize.width, cameraSize.height, width, height)
+            mLuminanceFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             mPixelFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             //
             mPixelHandler.post {
-                mPixelBuffer = ByteBuffer.allocate(width * height * 4)
-                mPixelBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888)
-                mPixelSurfaceTexture?.setDefaultBufferSize(width, height)
+                mPixelBuffer = ByteBuffer.allocate(mWidth * mHeight * 4)
+//                mPixelBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888)
+                mPixelSurfaceTexture?.setDefaultBufferSize(mWidth, mHeight)
                 GLES20.glViewport(0, 0, mWidth, mHeight)
                 GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
@@ -188,6 +178,7 @@ class CameraHelper {
         mGLHandler.post {
             if (mFrameIds != null) {
                 FGLUtils.deleteFBO(mFrameIds)
+                mFrameIds = null
             }
             FGLUtils.deleteTexture(mTextureId)
             mCamera.close()
@@ -208,26 +199,26 @@ class CameraHelper {
     }
 
     fun readPixels(imageView: ImageView) {
-        mPixelHandler.post {
-            val start = System.currentTimeMillis()
-            mPixelBuffer!!.position(0)
-            GLES20.glReadPixels(
-                0,
-                0,
-                mWidth,
-                mHeight,
-                GLES20.GL_RGBA,
-                GLES20.GL_UNSIGNED_BYTE,
-                mPixelBuffer
-            )
-            DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
-            mPixelBuffer?.rewind()
-            mPixelBitmap!!.copyPixelsFromBuffer(mPixelBuffer)
-            DLog.d("bitmap cost time: ${System.currentTimeMillis() - start}")
-            (imageView.context as Activity).runOnUiThread {
-                imageView.setImageBitmap(mPixelBitmap)
-            }
-        }
+//        mPixelHandler.post {
+//            val start = System.currentTimeMillis()
+//            mPixelBuffer!!.position(0)
+//            GLES20.glReadPixels(
+//                0,
+//                0,
+//                mWidth,
+//                mHeight,
+//                GLES20.GL_RGBA,
+//                GLES20.GL_UNSIGNED_BYTE,
+//                mPixelBuffer
+//            )
+//            DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
+//            mPixelBuffer?.rewind()
+//            mPixelBitmap!!.copyPixelsFromBuffer(mPixelBuffer)
+//            DLog.d("bitmap cost time: ${System.currentTimeMillis() - start}")
+//            (imageView.context as Activity).runOnUiThread {
+//                imageView.setImageBitmap(mPixelBitmap)
+//            }
+//        }
     }
 
 
