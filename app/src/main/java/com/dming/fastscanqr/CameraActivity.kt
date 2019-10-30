@@ -1,6 +1,5 @@
 package com.dming.fastscanqr
 
-import android.content.res.Configuration
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.SurfaceHolder
@@ -27,6 +26,7 @@ class CameraActivity : AppCompatActivity() {
 
     private val mCameraHelper: CameraHelper = CameraHelper()
     private val mReader = QRCodeReader()
+    private var mSource: GLRGBLuminanceSource? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,8 +58,11 @@ class CameraActivity : AppCompatActivity() {
         mCameraHelper.setParseQRListener { width: Int, height: Int, grayByteBuffer: ByteBuffer ->
             try {
                 val start = System.currentTimeMillis()
-                val source = GLRGBLuminanceSource(width, height, grayByteBuffer)
-                val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
+                if (mSource == null || mSource!!.width != width || mSource!!.height != height) {
+                    mSource = GLRGBLuminanceSource(width, height)
+                }
+                mSource!!.setData(grayByteBuffer)
+                val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(mSource))
                 val result = mReader.decode(binaryBitmap)// 开始解析
                 DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
             } catch (e: NotFoundException) {
@@ -74,31 +77,6 @@ class CameraActivity : AppCompatActivity() {
             mCameraHelper.readPixels(it as ImageView)
         }
     }
-
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
-        DLog.i("onConfigurationChanged: ${newConfig!!.orientation}")
-    }
-
-//        if (getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-//            fullBtn.setImageResource(R.drawable.ic_button_zoom);
-//            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-//        }else {
-//            fullBtn.setImageResource(R.drawable.ic_button_full);
-//            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-//        }
-//        baseLayout.getViewTreeObserver()
-//            .addOnGlobalLayoutListener(ViewTreeObserver.OnGlobalLayoutListener {
-//                val width = baseLayout.getMeasuredWidth()
-//                val height = baseLayout.getMeasuredHeight()
-//                if (width != widthPixels || height != heightPixels) {
-//                    widthPixels = width
-//                    heightPixels = height
-//                    //                    DLog.i("baseLayout Width: "+baseLayout.getMeasuredWidth()+" Height: "+baseLayout.getMeasuredHeight());
-//                    dnPlayer.onConfigurationChanged(widthPixels, heightPixels)
-//                }
-//            })
-//    }
 
     override fun onDestroy() {
         super.onDestroy()

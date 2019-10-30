@@ -27,30 +27,21 @@ import java.nio.ByteBuffer
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Betaminos
  */
-class GLRGBLuminanceSource : LuminanceSource {
+class GLRGBLuminanceSource(width: Int, height: Int) : LuminanceSource(width, height) {
 
     private var luminances: ByteArray? = null
-    private val dataWidth: Int
-    private val dataHeight: Int
-    private val left: Int
-    private val top: Int
+    private val dataWidth: Int = width
+    private val dataHeight: Int = height
+    private val left: Int = 0
+    private val top: Int = 0
 
-    constructor(width: Int, height: Int, pixels: ByteBuffer) : super(width, height) {
+    init {
+        luminances = ByteArray(width * height)
+    }
 
-        dataWidth = width
-        dataHeight = height
-        left = 0
-        top = 0
-
-        val srcSize = width * height * 4
+    fun setData(pixels: ByteBuffer) {
         var i = 0
-        if(luminances == null){
-            luminances = ByteArray( width * height)
-        }else{
-            if(luminances!!.size != width * height){
-                luminances = ByteArray( width * height)
-            }
-        }
+        val srcSize = width * height * 4
         var offset = 0
         while (offset < srcSize) {
             luminances!![i++] = pixels.get(offset)
@@ -58,32 +49,15 @@ class GLRGBLuminanceSource : LuminanceSource {
         }
     }
 
-    private constructor(
-        pixels: ByteArray,
-        dataWidth: Int,
-        dataHeight: Int,
-        left: Int,
-        top: Int,
-        width: Int,
-        height: Int
-    ) : super(width, height) {
-        require(!(left + width > dataWidth || top + height > dataHeight)) { "Crop rectangle does not fit within image data." }
-        this.luminances = pixels
-        this.dataWidth = dataWidth
-        this.dataHeight = dataHeight
-        this.left = left
-        this.top = top
-    }
-
-    override fun getRow(y: Int, row: ByteArray?): ByteArray {
-        var row = row
+    override fun getRow(y: Int, rowList: ByteArray?): ByteArray {
+        var row = rowList
         require(!(y < 0 || y >= height)) { "Requested row is outside the image: $y" }
         val width = width
         if (row == null || row.size < width) {
             row = ByteArray(width)
         }
         val offset = (y + top) * dataWidth + left
-        System.arraycopy(luminances, offset, row, 0, width)
+        System.arraycopy(luminances!!, offset, row, 0, width)
         return row
     }
 
@@ -103,14 +77,14 @@ class GLRGBLuminanceSource : LuminanceSource {
 
         // If the width matches the full width of the underlying data, perform a single copy.
         if (width == dataWidth) {
-            System.arraycopy(luminances, inputOffset, matrix, 0, area)
+            System.arraycopy(luminances!!, inputOffset, matrix, 0, area)
             return matrix
         }
 
         // Otherwise copy one cropped row at a time.
         for (y in 0 until height) {
             val outputOffset = y * width
-            System.arraycopy(luminances, inputOffset, matrix, outputOffset, width)
+            System.arraycopy(luminances!!, inputOffset, matrix, outputOffset, width)
             inputOffset += dataWidth
         }
         return matrix
@@ -122,11 +96,6 @@ class GLRGBLuminanceSource : LuminanceSource {
 
     override fun crop(left: Int, top: Int, width: Int, height: Int): LuminanceSource {
         return GLRGBLuminanceSource(
-            luminances!!,
-            dataWidth,
-            dataHeight,
-            this.left + left,
-            this.top + top,
             width,
             height
         )
