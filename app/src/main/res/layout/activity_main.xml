@@ -3,12 +3,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".CameraActivity">
 
     <com.dming.fastscanqr.GLQRView
         android:id="@+id/glQRView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        app:scanPercentSize="0.65"
+        app:scanTopOffset="100"
+        app:scanCrop="@drawable/scan_crop_bg"
+        app:scanLine="@drawable/scan_progress"
+        app:scanBackground="@color/scanBackground"/>
 
     <ImageView
         android:id="@+id/btn_back"
@@ -16,5 +22,20 @@
         android:layout_height="50dp"
         android:scaleType="centerInside"
         android:src="@drawable/ic_back_white" />
+
+    <ImageView
+        android:id="@+id/btn_flash"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom|center"
+        android:layout_marginBottom="50dp"
+        android:src="@drawable/flashlight_off" />
+
+    <!--    // test-->
+    <!--    <ImageView-->
+    <!--        android:id="@+id/testImg"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_gravity="bottom"-->
+    <!--        android:layout_height="300dp"/>-->
 
 </FrameLayout>

@@ -26,10 +26,10 @@ import java.nio.ByteBuffer
 
 class GLQRView : FrameLayout {
 
-    companion object {
-        private const val TOP: Float = 100f
-        private const val SIZE_PERCENT: Float = 0.65f
-    }
+//    companion object {
+//        private const val TOP: Float = 100f
+//        private const val SIZE_PERCENT: Float = 0.65f
+//    }
 
     private val mCameraHelper: CameraHelper = CameraHelper()
     private val mReader = QRCodeReader()
@@ -48,33 +48,60 @@ class GLQRView : FrameLayout {
         attrs,
         defStyleAttr
     ) {
-        initView()
-        afterInitQRView()
+        initView(attrs)
         initEvent()
     }
 
-    private fun afterInitQRView() {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val outSize = Point()
-        wm.defaultDisplay.getRealSize(outSize)
-        mSize = (outSize.x * SIZE_PERCENT).toInt()
-        mTop = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, TOP,
-            context.resources.displayMetrics
-        ).toInt()
-        fl_get_img.layoutParams = LinearLayout.LayoutParams(mSize, mSize)
-        v_top.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, mTop)
-        mAnimator = ObjectAnimator.ofFloat(iv_scan_progress, "translationY", 0f, mSize.toFloat())
-        mAnimator?.let {
-            it.duration = 3000
-            it.repeatMode = ValueAnimator.RESTART
-            it.repeatCount = ValueAnimator.INFINITE
-            it.start()
+    private fun initAttribute(attrs: AttributeSet?) {
+        attrs?.let {
+            val typedArray = context.obtainStyledAttributes(it, R.styleable.GLQRView)
+            val scanPercentSize = typedArray.getFloat(R.styleable.GLQRView_scanPercentSize, 0.65f)
+            val scanTopOffset = typedArray.getFloat(R.styleable.GLQRView_scanTopOffset, 100f)
+            val scanLine =
+                typedArray.getDrawable(R.styleable.GLQRView_scanLine)
+            val scanCrop =
+                typedArray.getDrawable(R.styleable.GLQRView_scanCrop)
+            val scanBackground = typedArray.getColor(
+                R.styleable.GLQRView_scanBackground,
+                context.resources.getColor(R.color.scanBackground)
+            )
+            typedArray.recycle()
+            if (scanLine != null) {
+                iv_scan_progress.setImageDrawable(scanLine)
+            }
+            if (scanCrop != null) {
+                iv_get_img.setImageDrawable(scanCrop)
+            }
+            v_left.setBackgroundColor(scanBackground)
+            v_top.setBackgroundColor(scanBackground)
+            v_right.setBackgroundColor(scanBackground)
+            v_bottom.setBackgroundColor(scanBackground)
+            //
+            val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val outSize = Point()
+            wm.defaultDisplay.getRealSize(outSize)
+            mSize = (outSize.x * scanPercentSize).toInt()
+            mTop = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, scanTopOffset,
+                context.resources.displayMetrics
+            ).toInt()
+            fl_get_img.layoutParams = LinearLayout.LayoutParams(mSize, mSize)
+            v_top.layoutParams =
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, mTop)
+            mAnimator =
+                ObjectAnimator.ofFloat(iv_scan_progress, "translationY", 0f, mSize.toFloat())
+            mAnimator?.let {
+                it.duration = 3000
+                it.repeatMode = ValueAnimator.RESTART
+                it.repeatCount = ValueAnimator.INFINITE
+                it.start()
+            }
         }
     }
 
-    private fun initView() {
+    private fun initView(attrs: AttributeSet?) {
         View.inflate(context, R.layout.layout_gl_qr, this)
+        initAttribute(attrs)
         mCameraHelper.init(context)
         glSurfaceView.holder.addCallback(object : SurfaceHolder.Callback {
 
@@ -136,19 +163,6 @@ class GLQRView : FrameLayout {
                 mReader.reset()
             }
         }
-        btn_flash.setOnClickListener {
-            if (btn_flash.tag != "on") {
-                if (mCameraHelper.setFlashLight(true)) {
-                    btn_flash.tag = "on"
-                    btn_flash.setImageResource(R.drawable.flashlight_on)
-                }
-            } else {
-                if (mCameraHelper.setFlashLight(false)) {
-                    btn_flash.tag = "off"
-                    btn_flash.setImageResource(R.drawable.flashlight_off)
-                }
-            }
-        }
     }
 
     fun changeQRConfigure(
@@ -156,6 +170,10 @@ class GLQRView : FrameLayout {
         size: Int
     ) {
         mCameraHelper.changeQRConfigure(top, size)
+    }
+
+    fun setFlashLight(on: Boolean): Boolean {
+        return mCameraHelper.setFlashLight(on)
     }
 
     override fun onDetachedFromWindow() {
