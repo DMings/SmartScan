@@ -11,4 +11,5 @@ interface ICamera {
     fun release()
     fun getSurfaceTexture(): SurfaceTexture?
     fun getCameraSize(): CameraSize?
+    fun setFlashLight(on: Boolean): Boolean
 }

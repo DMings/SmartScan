@@ -26,7 +26,6 @@ import com.dming.fastscanqr.utils.DLog
 
 @TargetApi(21)
 class Camera2 : BaseCamera(), ICamera {
-
     private var mCameraId: String? = null
     private var mCameraCharacteristics: CameraCharacteristics? = null
     private var mCamera: CameraDevice? = null
@@ -235,6 +234,10 @@ class Camera2 : BaseCamera(), ICamera {
                 CaptureRequest.CONTROL_AF_MODE_OFF
             )
         }
+    }
+
+    override fun setFlashLight(on: Boolean): Boolean {
+        return false
     }
 
 }

@@ -1,6 +1,5 @@
 package com.dming.fastscanqr
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
@@ -8,7 +7,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
-import android.widget.ImageView
 import com.dming.fastscanqr.utils.EglHelper
 import com.dming.fastscanqr.utils.FGLUtils
 import java.nio.ByteBuffer
@@ -43,7 +41,10 @@ class CameraHelper {
     private var mPixelTexture = -1
     private lateinit var mPixelFilter: IShader
     //
-    private var readQRCode: ((width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit)? = null
+    private var readQRCode: ((
+        width: Int, height: Int,
+        source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer
+    ) -> Unit)? = null
     //
     private var mContext: Context? = null
 
@@ -60,12 +61,12 @@ class CameraHelper {
         }
     }
 
-    fun surfaceCreated(activity: Activity, holder: SurfaceHolder?) {
+    fun surfaceCreated(context: Context, holder: SurfaceHolder?) {
         mGLHandler.post {
             mEglHelper.initEgl(null, holder!!.surface)
             mTextureId = FGLUtils.createOESTexture()
-            mPreviewFilter = PreviewFilter(activity)
-            mLuminanceFilter = LuminanceFilter(activity)
+            mPreviewFilter = PreviewFilter(context)
+            mLuminanceFilter = LuminanceFilter(context)
             mCamera.open(mTextureId)
             mCamera.getSurfaceTexture()?.setOnFrameAvailableListener {
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
@@ -87,7 +88,7 @@ class CameraHelper {
                 mPixelSurfaceTexture = SurfaceTexture(mPixelTexture)
                 mPixelSurface = Surface(mPixelSurfaceTexture)
                 mPixelEglHelper.initEgl(mEglHelper.eglContext, mPixelSurface)
-                mPixelFilter = PixelFilter(activity)
+                mPixelFilter = PixelFilter(context)
                 GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
                 mPixelSurfaceTexture?.setOnFrameAvailableListener {
                     it.updateTexImage()
@@ -116,9 +117,6 @@ class CameraHelper {
             //
             mPixelHandler.post {
                 mPixelFilter.onChange(cameraSize.width, cameraSize.height, mWidth, mHeight)
-                mPixelHandler.width = mWidth
-                mPixelHandler.height = mHeight
-                mPixelHandler.setByteBuffer(mWidth, mHeight)
                 mPixelSurfaceTexture?.setDefaultBufferSize(mWidth, mHeight)
                 GLES20.glViewport(0, 0, mWidth, mHeight)
                 GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -157,6 +155,16 @@ class CameraHelper {
         mGLThread.quit()
         mPixelThread.quit()
         mGLThread.join()
+//        mPixelThread.join()
+    }
+
+    fun changeQRConfigure(
+        top: Int,
+        size: Int
+    ) {
+        mPixelHandler.post {
+            mPixelHandler.setConfigure(top, size, mWidth, mHeight)
+        }
     }
 
     private fun parseQRCode() {
@@ -170,24 +178,31 @@ class CameraHelper {
                 //
                 try {
                     mPixelLock.lock()
-                    mPixelHandler.buffer?.let { byteBuffer ->
-                        val start = System.currentTimeMillis()
-                        byteBuffer.position(0)
-                        GLES20.glReadPixels(
-                            0,
-                            0,
-                            mPixelHandler.width,
-                            mPixelHandler.height,
-                            GLES20.GL_RGBA,
-                            GLES20.GL_UNSIGNED_BYTE,
-                            byteBuffer
-                        )
+                    if (mPixelHandler.width != 0 && mPixelHandler.height != 0) {
+                        mPixelHandler.buffer?.let { byteBuffer ->
+                            //                        val start = System.currentTimeMillis()
+                            byteBuffer.position(0)
+                            GLES20.glReadPixels(
+                                mPixelHandler.left,
+                                mPixelHandler.top,
+                                mPixelHandler.width,
+                                mPixelHandler.height,
+                                GLES20.GL_RGBA,
+                                GLES20.GL_UNSIGNED_BYTE,
+                                byteBuffer
+                            )
 //                    DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
-                        byteBuffer.rewind()
-                        readQRCode?.let { readQRCode ->
-                            readQRCode(mWidth, mHeight, byteBuffer)
-                        }
+                            byteBuffer.rewind()
+                            if (readQRCode != null && mPixelHandler.source != null) {
+                                readQRCode!!(
+                                    mPixelHandler.width,
+                                    mPixelHandler.height,
+                                    mPixelHandler.source!!,
+                                    byteBuffer
+                                )
+                            }
 //                    DLog.d("qr cost time: ${System.currentTimeMillis() - start}")
+                        }
                     }
                 } finally {
                     mPixelLock.unlock()
@@ -199,32 +214,17 @@ class CameraHelper {
         }
     }
 
-    fun setParseQRListener(readQRCode: (width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit) {
+    fun setParseQRListener(
+        readQRCode: (
+            width: Int, height: Int,
+            source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer
+        ) -> Unit
+    ) {
         this.readQRCode = readQRCode
     }
 
-    fun readPixels(imageView: ImageView) {
-//        mPixelHandler.post {
-//            val start = System.currentTimeMillis()
-//            mPixelBuffer!!.position(0)
-//            GLES20.glReadPixels(
-//                0,
-//                0,
-//                mWidth,
-//                mHeight,
-//                GLES20.GL_RGBA,
-//                GLES20.GL_UNSIGNED_BYTE,
-//                mPixelBuffer
-//            )
-//            DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
-//            mPixelBuffer?.rewind()
-//            mPixelBitmap!!.copyPixelsFromBuffer(mPixelBuffer)
-//            DLog.d("bitmap cost time: ${System.currentTimeMillis() - start}")
-//            (imageView.context as Activity).runOnUiThread {
-//                imageView.setImageBitmap(mPixelBitmap)
-//            }
-//        }
+    fun setFlashLight(on: Boolean): Boolean {
+        return mCamera.setFlashLight(on)
     }
-
 
 }

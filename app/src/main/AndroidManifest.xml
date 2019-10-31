@@ -4,6 +4,7 @@
     package="com.dming.fastscanqr">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
 
     <application
         android:allowBackup="true"

@@ -16,6 +16,7 @@ class Camera1 : BaseCamera(), ICamera {
     private val mCameraInfo = Camera.CameraInfo()
     private var mSurfaceTexture: SurfaceTexture? = null
     private var mContext: Context? = null
+    private var mFlashModes: List<String>? = null
 
     override fun init(context: Context) {
         mContext = context
@@ -38,6 +39,7 @@ class Camera1 : BaseCamera(), ICamera {
         val start = System.currentTimeMillis()
         mCamera = Camera.open(mCameraId)
         mCameraParameters = mCamera!!.parameters
+        mFlashModes = mCameraParameters.supportedFlashModes
         mPreviewSizes.clear()
         for (size in mCameraParameters.supportedPreviewSizes) {
             mPreviewSizes.add(CameraSize(size.width, size.height))
@@ -91,7 +93,6 @@ class Camera1 : BaseCamera(), ICamera {
         }
     }
 
-
     private fun getCameraRotation(info: Camera.CameraInfo): Int {
         val rotation =
             if (mContext != null)
@@ -133,6 +134,19 @@ class Camera1 : BaseCamera(), ICamera {
         } else {
             false
         }
+    }
+
+    override fun setFlashLight(on: Boolean): Boolean {
+        mCamera?.let {
+            val mode = if (on) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
+            if (mFlashModes != null && mFlashModes!!.contains(mode)) {
+                mCameraParameters.flashMode = mode
+                it.parameters = mCameraParameters
+                return true
+            }
+        }
+        DLog.i("setFlashLight>>>>false")
+        return false
     }
 
 

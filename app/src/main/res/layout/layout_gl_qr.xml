@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <SurfaceView
+        android:id="@+id/glSurfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <View
+            android:id="@+id/v_top"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="#66000000" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/v_left"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#66000000" />
+
+            <FrameLayout
+                android:id="@+id/fl_get_img"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_below="@+id/v_top"
+                android:layout_toEndOf="@+id/v_left">
+
+                <ImageView
+                    android:id="@+id/iv_get_img"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/scan_crop_bg" />
+
+                <ImageView
+                    android:id="@+id/iv_scan_progress"
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:src="@drawable/scan_progress" />
+
+            </FrameLayout>
+
+            <View
+                android:id="@+id/v_right"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#66000000" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/v_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#66000000" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/btn_flash"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom|center"
+        android:layout_marginBottom="50dp"
+        android:src="@drawable/flashlight_off" />
+
+<!--    // test-->
+<!--    <ImageView-->
+<!--        android:id="@+id/testImg"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_gravity="bottom"-->
+<!--        android:layout_height="300dp"/>-->
+
+</FrameLayout>
