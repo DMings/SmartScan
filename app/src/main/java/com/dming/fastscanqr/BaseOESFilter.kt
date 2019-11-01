@@ -41,7 +41,7 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
     }
 
     override fun onChange(imgWidth: Int, imgHeight: Int, width: Int, height: Int) {
-        DLog.i("BaseOESFilter 000 imgWidth: $imgWidth  - imgHeight: $imgHeight >>> width: $width  - height: $height")
+//        DLog.i("BaseOESFilter 000 imgWidth: $imgWidth  - imgHeight: $imgHeight >>> width: $width  - height: $height")
         var imgHRatio = 1f
         var imgWRatio = 1f
         if (imgWidth > imgHeight) {

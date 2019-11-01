@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="GLQRView">
-        <attr name="scanPercentSize" format="float"/>
-        <attr name="scanTopOffset" format="float"/>
-        <attr name="scanLine" format="reference"/>
-        <attr name="scanCrop" format="reference"/>
-        <attr name="scanBackground" format="color"/>
+        <attr name="scanSize" format="dimension" />
+        <attr name="scanTopOffset" format="dimension" />
+        <attr name="scanPercentSize" format="float" />
+        <attr name="scanPercentTopOffset" format="float" />
+        <attr name="scanLine" format="reference" />
+        <attr name="scanCrop" format="reference" />
+        <attr name="scanBackground" format="color" />
     </declare-styleable>
 </resources>

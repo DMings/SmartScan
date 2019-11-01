@@ -10,27 +10,20 @@ class PixelHandler(looper: Looper) : Handler(looper) {
     var source: GLRGBLuminanceSource? = null
     var left: Int = 0
     var top: Int = 0
-    var height: Int = 0
     var width: Int = 0
+    var height: Int = 0
 
     fun setConfigure(
-        top: Int,
-        size: Int,
+        top: Float,
+        size: Float,
         maxWidth: Int,
         maxHeight: Int
     ) {
-        if(size == 0)return
-        this.top = top
-        val minSide = if (maxWidth > maxHeight) maxHeight else maxWidth
-        if (size > minSide) {
-            this.width = minSide
-            this.height = minSide
-            this.left = 0
-        } else {
-            this.width = size
-            this.height = size
-            this.left = (minSide - size) / 2
-        }
+        val viewConfigure = GLCameraManager.getViewConfigure(top, size, maxWidth, maxHeight)
+        this.left = viewConfigure.left
+        this.top = viewConfigure.top
+        this.width = viewConfigure.width()
+        this.height = viewConfigure.height()
         this.buffer = ByteBuffer.allocateDirect(this.width * this.height * 4) // RGBA
         this.source = GLRGBLuminanceSource(this.width, this.height)
     }

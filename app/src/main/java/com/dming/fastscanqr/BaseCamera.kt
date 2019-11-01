@@ -14,7 +14,7 @@ open class BaseCamera {
 
     protected fun dealCameraSize(width: Int, height: Int, rotation: Int) {
         val lessThanView = ArrayList<CameraSize>()
-        DLog.i("getDealCameraSize width>  $width height>> $height rotation: $rotation")
+        DLog.i("dealCameraSize width>  $width height>> $height rotation: $rotation")
         for (size in mPreviewSizes) {
 //            DLog.i("preview size:$size")
             if (rotation == 90 || rotation == 270) { // normal

@@ -1,19 +1,21 @@
 package com.dming.fastscanqr
 
 import android.content.Context
+import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
+import com.dming.fastscanqr.utils.DLog
 import com.dming.fastscanqr.utils.EglHelper
 import com.dming.fastscanqr.utils.FGLUtils
 import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantLock
 
 
-class CameraHelper {
+class GLCameraManager {
     private val mCamera = Camera1()
     private val mCameraMatrix = FloatArray(16)
     //
@@ -45,11 +47,8 @@ class CameraHelper {
         width: Int, height: Int,
         source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer
     ) -> Unit)? = null
-    //
-    private var mContext: Context? = null
 
     fun init(context: Context) {
-        mContext = context
         mGLThread = HandlerThread("GL")
         mPixelThread = HandlerThread("QR")
         mGLThread.start()
@@ -75,11 +74,11 @@ class CameraHelper {
                     mLuminanceFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
                     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
                 }
+                it.getTransformMatrix(mCameraMatrix)
                 //
                 mPreviewFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
                 mEglHelper.swapBuffers()
                 it.updateTexImage()
-                it.getTransformMatrix(mCameraMatrix)
                 //
                 parseQRCode()
             }
@@ -111,7 +110,7 @@ class CameraHelper {
             //
             mCamera.surfaceChange(width, height)
             val cameraSize = mCamera.getCameraSize()
-
+            DLog.i("cameraSize  width: ${cameraSize.width} height: ${cameraSize.height}")
             mPreviewFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             mLuminanceFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             //
@@ -159,8 +158,8 @@ class CameraHelper {
     }
 
     fun changeQRConfigure(
-        top: Int,
-        size: Int
+        top: Float,
+        size: Float
     ) {
         mPixelHandler.post {
             mPixelHandler.setConfigure(top, size, mWidth, mHeight)
@@ -226,5 +225,53 @@ class CameraHelper {
     fun setFlashLight(on: Boolean): Boolean {
         return mCamera.setFlashLight(on)
     }
+
+    companion object {
+        fun getViewConfigure(
+            t: Float,
+            s: Float,
+            maxWidth: Int,
+            maxHeight: Int
+        ): Rect {
+            var left = 0
+            val top: Int
+            val height: Int
+            val width: Int
+            val size: Int
+            if (s == 0f) {
+                val tt = if (t < 1) {
+                    (maxHeight * t).toInt()
+                } else {
+                    t.toInt()
+                }
+                return Rect(left, tt, maxWidth, maxHeight)
+            }
+            val minSide = if (maxWidth > maxHeight) maxHeight else maxWidth
+            size = if (s < 1) {
+                (minSide * s).toInt()
+            } else {
+                s.toInt()
+            }
+            if (size > minSide) {
+                width = minSide
+                height = minSide
+                left = 0
+            } else {
+                width = size
+                height = size
+                left = (minSide - size) / 2
+            }
+            top = if (maxWidth > maxHeight) { // 横屏
+                left = (maxWidth - size) / 2
+                (minSide - size) / 2
+            } else {
+                val tt = if (t < 1) maxHeight * t else t
+                if (tt + size > maxHeight) (maxHeight - tt).toInt()
+                else tt.toInt()
+            }
+            return Rect(left, top, left + width, top + height)
+        }
+    }
+
 
 }

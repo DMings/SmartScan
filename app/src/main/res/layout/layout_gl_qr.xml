@@ -37,14 +37,12 @@
                 <ImageView
                     android:id="@+id/iv_get_img"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/scan_crop_bg" />
+                    android:layout_height="match_parent"/>
 
                 <ImageView
                     android:id="@+id/iv_scan_progress"
                     android:layout_width="match_parent"
-                    android:layout_height="10dp"
-                    android:src="@drawable/scan_progress" />
+                    android:layout_height="10dp" />
 
             </FrameLayout>
 

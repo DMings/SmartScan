@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".CameraActivity">
+
 
     <com.dming.fastscanqr.GLQRView
         android:id="@+id/glQRView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:scanPercentSize="0.65"
-        app:scanTopOffset="100"
+        app:scanBackground="@color/scanBackground"
         app:scanCrop="@drawable/scan_crop_bg"
         app:scanLine="@drawable/scan_progress"
-        app:scanBackground="@color/scanBackground"/>
+        app:scanPercentSize="0.65"
+        app:scanTopOffset="100dp"/>
 
     <ImageView
         android:id="@+id/btn_back"
@@ -23,19 +24,25 @@
         android:scaleType="centerInside"
         android:src="@drawable/ic_back_white" />
 
+    <View
+        android:id="@+id/v_test"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#33ff0000"/>
+
     <ImageView
         android:id="@+id/btn_flash"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_gravity="bottom|center"
         android:layout_marginBottom="50dp"
         android:src="@drawable/flashlight_off" />
 
-    <!--    // test-->
-    <!--    <ImageView-->
-    <!--        android:id="@+id/testImg"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_gravity="bottom"-->
-    <!--        android:layout_height="300dp"/>-->
+    <!--        // test-->
+<!--    <ImageView-->
+<!--        android:id="@+id/testImg"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="200dp"-->
+<!--        android:layout_gravity="bottom" />-->
 
 </FrameLayout>
