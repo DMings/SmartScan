@@ -10,6 +10,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class CameraActivity : AppCompatActivity() {
 
+    private var mToast:Toast? = null
     // test
     private var mTestImgBitmap: Bitmap? = null
 
@@ -19,14 +20,8 @@ class CameraActivity : AppCompatActivity() {
         btn_back.setOnClickListener {
             onBackPressed()
         }
-        glQRView.setResultListener {
-            runOnUiThread {
-                Toast.makeText(
-                    this,
-                    "result: $it",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+        glQRView.setResultOnThreadListener {
+
         }
 //        val flashLightBtnSize = TypedValue.applyDimension(
 //            TypedValue.COMPLEX_UNIT_DIP, 50f,

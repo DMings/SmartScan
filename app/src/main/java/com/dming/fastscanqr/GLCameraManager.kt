@@ -1,6 +1,7 @@
 package com.dming.fastscanqr
 
 import android.content.Context
+import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
@@ -43,6 +44,8 @@ class GLCameraManager {
     private var mPixelTexture = -1
     private lateinit var mPixelFilter: IShader
     //
+    private var mScale: Float = 1.0f
+
     private var readQRCode: ((
         width: Int, height: Int,
         source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer
@@ -68,14 +71,22 @@ class GLCameraManager {
             mLuminanceFilter = LuminanceFilter(context)
             mCamera.open(mTextureId)
             mCamera.getSurfaceTexture()?.setOnFrameAvailableListener {
+                it.getTransformMatrix(mCameraMatrix)
+
+//                val matrix = Matrix()
+//                matrix.setValues(mCameraMatrix)
+//                matrix.postScale(mScale,mScale)
+//                matrix.getValues(mCameraMatrix)
+
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
                 mFrameIds?.let { frameIds ->
                     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameIds[0])
+                    mLuminanceFilter.setScaleMatrix(mScale)
                     mLuminanceFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
                     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
                 }
-                it.getTransformMatrix(mCameraMatrix)
                 //
+                mPreviewFilter.setScaleMatrix(mScale)
                 mPreviewFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
                 mEglHelper.swapBuffers()
                 it.updateTexImage()
@@ -99,6 +110,7 @@ class GLCameraManager {
     fun onSurfaceChanged(width: Int, height: Int) {
         mWidth = width
         mHeight = height
+        mScale = 1.0f
         mGLHandler.post {
             GLES20.glViewport(0, 0, width, height)
             GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
@@ -163,6 +175,15 @@ class GLCameraManager {
     ) {
         mPixelHandler.post {
             mPixelHandler.setConfigure(top, size, mWidth, mHeight)
+        }
+    }
+
+    fun onScaleChange(scale: Float) {
+        mScale *= scale
+        if (mScale < 1.0f) {
+            mScale = 1.0f
+        } else if (mScale > 3.0f) {
+            mScale = 3.0f
         }
     }
 

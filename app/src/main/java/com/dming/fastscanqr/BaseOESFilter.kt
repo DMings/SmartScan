@@ -4,10 +4,7 @@ import android.content.Context
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
-import com.dming.fastscanqr.utils.DLog
-
 import com.dming.fastscanqr.utils.ShaderHelper
-
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
@@ -52,7 +49,7 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
         texH = imgHRatio
         texW = imgWRatio
 //        DLog.i("BaseOESFilter 111 texH: $texH  - texW: $texW ")
-        var ratio:Float
+        var ratio: Float
         if (width > height) {
             ratio = 1f * height / width
             texW = imgWRatio * ratio
@@ -74,8 +71,14 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
         }
 //        DLog.i("BaseOESFilter 333 texH: $texH  - texW: $texW")
         //
+//        Matrix.setIdentityM(mMvpMatrix, 0)
+//        Matrix.scaleM(mMvpMatrix, 0, texW, texH, 1f)
+    }
+
+    override fun setScaleMatrix(scale: Float) {
         Matrix.setIdentityM(mMvpMatrix, 0)
         Matrix.scaleM(mMvpMatrix, 0, texW, texH, 1f)
+        Matrix.scaleM(mMvpMatrix, 0, scale, scale, 1f)
     }
 
     override fun onDraw(

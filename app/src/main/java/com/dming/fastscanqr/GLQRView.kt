@@ -5,7 +5,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.TypedValue
+import android.view.ScaleGestureDetector
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
@@ -22,10 +22,9 @@ import kotlinx.android.synthetic.main.layout_gl_qr.view.*
 import java.nio.ByteBuffer
 
 
-class GLQRView : FrameLayout {
+class GLQRView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
 
     private val mGLCameraManager = GLCameraManager()
-    private val mReader = QRCodeReader()
     private var mTop: Float = 0f
     private var mSize: Float = 0f
     private var mIsHasScanLine: Boolean = false
@@ -33,6 +32,9 @@ class GLQRView : FrameLayout {
     private var onGrayImg: ((width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit)? = null
     private var onResult: ((text: String) -> Unit)? = null
     private var onCropLocation: ((rect: Rect) -> Unit)? = null
+    //
+    private val mQRReader = QRCodeReader()
+//    private val mReader = QRCodeReader()
 
     constructor(context: Context) : this(context, null)
 
@@ -168,7 +170,7 @@ class GLQRView : FrameLayout {
                 val start = System.currentTimeMillis()
                 source.setData(grayByteBuffer)
                 val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
-                val result = mReader.decode(binaryBitmap)// 开始解析
+                val result = mQRReader.decode(binaryBitmap)// 开始解析
                 DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
                 if (this.onResult != null && result != null) {
                     this.onResult!!(result.text)
@@ -180,9 +182,26 @@ class GLQRView : FrameLayout {
             } catch (e: FormatException) {
 //                e.printStackTrace()
             } finally {
-                mReader.reset()
+                mQRReader.reset()
             }
         }
+        val scaleGestureDetector = ScaleGestureDetector(context, this)
+        glSurfaceView.setOnTouchListener { _, event ->
+            scaleGestureDetector.onTouchEvent(event)
+            return@setOnTouchListener true
+        }
+    }
+
+    override fun onScaleEnd(detector: ScaleGestureDetector) {
+    }
+
+    override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+        return true
+    }
+
+    override fun onScale(detector: ScaleGestureDetector): Boolean {
+        mGLCameraManager.onScaleChange(detector.scaleFactor)
+        return true
     }
 
     fun setGrayImgListener(
@@ -193,7 +212,7 @@ class GLQRView : FrameLayout {
         this.onGrayImg = onGrayImg
     }
 
-    fun setResultListener(onResult: (text: String) -> Unit) {
+    fun setResultOnThreadListener(onResult: (text: String) -> Unit) {
         this.onResult = onResult
     }
 

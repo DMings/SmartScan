@@ -39,6 +39,9 @@ class PixelFilter(mContext: Context) : IShader {
         Matrix.setIdentityM(mMvpMatrix, 0)
     }
 
+    override fun setScaleMatrix(scale: Float) {
+    }
+
     override fun onDraw(
         textureId: Int,
         x: Int,
