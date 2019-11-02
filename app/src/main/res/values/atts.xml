@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="GLQRView">
-        <attr name="scanSize" format="dimension" />
+    <declare-styleable name="GLScanView">
+        <attr name="scanWidth" format="dimension" />
+        <attr name="scanHeight" format="dimension" />
+        <attr name="scanPercentWidth" format="float" />
+        <attr name="scanPercentHeight" format="float" />
         <attr name="scanTopOffset" format="dimension" />
-        <attr name="scanPercentSize" format="float" />
         <attr name="scanPercentTopOffset" format="float" />
         <attr name="scanLine" format="reference" />
         <attr name="scanCrop" format="reference" />
         <attr name="scanBackground" format="color" />
+        <attr name="addOneDCode" format="boolean" />
+        <attr name="onlyOneDCode" format="boolean" />
+        <attr name="useMinSize" format="boolean" />
     </declare-styleable>
 </resources>

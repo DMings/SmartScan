@@ -14,12 +14,15 @@ class PixelHandler(looper: Looper) : Handler(looper) {
     var height: Int = 0
 
     fun setConfigure(
-        top: Float,
-        size: Float,
+        t: Float,
+        ws: Float,
+        hs: Float,
         maxWidth: Int,
-        maxHeight: Int
+        maxHeight: Int,
+        useMinSize: Boolean
     ) {
-        val viewConfigure = GLCameraManager.getViewConfigure(top, size, maxWidth, maxHeight)
+        val viewConfigure =
+            GLCameraManager.getViewConfigure(t, ws, hs, maxWidth, maxHeight, useMinSize)
         this.left = viewConfigure.left
         this.top = viewConfigure.top
         this.width = viewConfigure.width()

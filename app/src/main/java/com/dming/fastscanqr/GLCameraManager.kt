@@ -1,7 +1,6 @@
 package com.dming.fastscanqr
 
 import android.content.Context
-import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
@@ -53,7 +52,7 @@ class GLCameraManager {
 
     fun init(context: Context) {
         mGLThread = HandlerThread("GL")
-        mPixelThread = HandlerThread("QR")
+        mPixelThread = HandlerThread("SCAN")
         mGLThread.start()
         mGLHandler = Handler(mGLThread.looper)
         mPixelThread.start()
@@ -170,11 +169,13 @@ class GLCameraManager {
     }
 
     fun changeQRConfigure(
-        top: Float,
-        size: Float
+        t: Float,
+        ws: Float,
+        hs: Float,
+        useMinSize: Boolean
     ) {
         mPixelHandler.post {
-            mPixelHandler.setConfigure(top, size, mWidth, mHeight)
+            mPixelHandler.setConfigure(t, ws, hs, mWidth, mHeight, useMinSize)
         }
     }
 
@@ -250,45 +251,41 @@ class GLCameraManager {
     companion object {
         fun getViewConfigure(
             t: Float,
-            s: Float,
+            ws: Float,
+            hs: Float,
             maxWidth: Int,
-            maxHeight: Int
+            maxHeight: Int,
+            useMinSize: Boolean
         ): Rect {
-            var left = 0
+            val left: Int
             val top: Int
-            val height: Int
-            val width: Int
-            val size: Int
-            if (s == 0f) {
-                val tt = if (t < 1) {
-                    (maxHeight * t).toInt()
+            var height: Int
+            var width: Int
+            val ww = if (ws == 0f) {
+                maxWidth
+            } else {
+                (if (ws <= 1) maxWidth * ws else ws).toInt()
+            }
+            val hh = if (hs == 0f) {
+                maxHeight
+            } else {
+                (if (hs <= 1) maxHeight * hs else hs).toInt()
+            }
+            val tt = if (t <= 1) maxHeight * t else t
+            width = if (ww > maxWidth) maxWidth else ww
+            height = if (hh > maxHeight) maxHeight else hh
+            if (useMinSize) { // 用最小的边
+                if (width > height) {
+                    width = height
                 } else {
-                    t.toInt()
+                    height = width
                 }
-                return Rect(left, tt, maxWidth, maxHeight)
             }
-            val minSide = if (maxWidth > maxHeight) maxHeight else maxWidth
-            size = if (s < 1) {
-                (minSide * s).toInt()
+            left = (maxWidth - width) / 2
+            top = if (maxWidth > maxHeight) { // 横屏  高度的居中
+                (maxHeight - height) / 2
             } else {
-                s.toInt()
-            }
-            if (size > minSide) {
-                width = minSide
-                height = minSide
-                left = 0
-            } else {
-                width = size
-                height = size
-                left = (minSide - size) / 2
-            }
-            top = if (maxWidth > maxHeight) { // 横屏
-                left = (maxWidth - size) / 2
-                (minSide - size) / 2
-            } else {
-                val tt = if (t < 1) maxHeight * t else t
-                if (tt + size > maxHeight) (maxHeight - tt).toInt()
-                else tt.toInt()
+                if (tt + height > maxHeight) maxHeight - height else tt.toInt()
             }
             return Rect(left, top, left + width, top + height)
         }

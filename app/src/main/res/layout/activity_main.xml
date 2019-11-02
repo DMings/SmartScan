@@ -7,15 +7,18 @@
     tools:context=".CameraActivity">
 
 
-    <com.dming.fastscanqr.GLQRView
+    <com.dming.fastscanqr.GLScanView
         android:id="@+id/glQRView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:scanBackground="@color/scanBackground"
         app:scanCrop="@drawable/scan_crop_bg"
         app:scanLine="@drawable/scan_progress"
-        app:scanPercentSize="0.65"
-        app:scanTopOffset="100dp"/>
+        app:addOneDCode="true"
+        app:scanPercentWidth="0.65"
+        app:scanPercentHeight="0.8"
+        app:useMinSize="true"
+        app:scanPercentTopOffset="0.2"/>
 
     <ImageView
         android:id="@+id/btn_back"
