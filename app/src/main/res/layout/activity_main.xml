@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CameraActivity">
+    tools:context="com.dming.demo.CameraActivity">
 
 
-    <com.dming.fastscanqr.GLScanView
+    <com.dming.smallScan.GLScanView
         android:id="@+id/glQRView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -38,8 +38,7 @@
         android:id="@+id/btn_flash"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_gravity="bottom|center"
-        android:layout_marginBottom="50dp"
+        android:visibility="invisible"
         android:src="@drawable/flashlight_off"/>
 
     <!--        // test-->

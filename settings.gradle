@@ -1,2 +1,2 @@
-include ':app'
-rootProject.name='FastScanQR'
+include ':app',":glscan"
+rootProject.name='SamllScan'
