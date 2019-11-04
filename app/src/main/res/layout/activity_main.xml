@@ -7,13 +7,14 @@
     tools:context="com.dming.demo.CameraActivity">
 
 
+<!--    app:scanBackground="@color/scanBackground"-->
+<!--    app:scanCrop="@drawable/scan_crop_bg"-->
+<!--    app:scanLine="@drawable/scan_progress"-->
+
     <com.dming.smallScan.GLScanView
-        android:id="@+id/glQRView"
+        android:id="@+id/glScanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:scanBackground="@color/scanBackground"
-        app:scanCrop="@drawable/scan_crop_bg"
-        app:scanLine="@drawable/scan_progress"
         app:addOneDCode="true"
         app:scanPercentWidth="0.65"
         app:scanPercentHeight="0.8"
@@ -42,10 +43,10 @@
         android:src="@drawable/flashlight_off"/>
 
     <!--        // test-->
-<!--    <ImageView-->
-<!--        android:id="@+id/testImg"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="200dp"-->
-<!--        android:layout_gravity="bottom" />-->
+    <ImageView
+        android:id="@+id/testImg"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_gravity="bottom" />
 
 </FrameLayout>

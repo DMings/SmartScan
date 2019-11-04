@@ -9,7 +9,6 @@ import com.dming.smallScan.BuildConfig
  * Created by DMing on 2019/9/19.
  */
 
-@Suppress("UNUSED")
 class DLog {
     companion object {
         private val TAG = "DMUI"

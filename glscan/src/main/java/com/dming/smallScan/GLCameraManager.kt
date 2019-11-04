@@ -7,6 +7,9 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
+import com.dming.smallScan.filter.LuminanceFilter
+import com.dming.smallScan.filter.PixelFilter
+import com.dming.smallScan.filter.PreviewFilter
 import com.dming.smallScan.utils.DLog
 import com.dming.smallScan.utils.EglHelper
 import com.dming.smallScan.utils.FGLUtils
