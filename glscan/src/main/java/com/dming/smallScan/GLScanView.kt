@@ -125,7 +125,7 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         hasScanLin: Boolean
     ): Rect {
         val viewConfigure =
-            ScanLayout.getViewConfigure(t, ws, hs, maxWidth, maxHeight, mIsUseMinSize)
+            ScanLayoutLocation.getViewConfigure(t, ws, hs, maxWidth, maxHeight, mIsUseMinSize)
         post {
             DLog.i("scanSize: ${viewConfigure.width()}  scanTopOffset: ${viewConfigure.top}")
             fl_get_img.layoutParams =
@@ -147,7 +147,7 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
                 animator.start()
             }
         }
-        scannerView.setScannerRect(viewConfigure)
+        scannerView.changeScanConfigure(viewConfigure)
         return viewConfigure
     }
 

@@ -2,7 +2,7 @@ package com.dming.smallScan
 
 import android.graphics.Rect
 
-class ScanLayout {
+class ScanLayoutLocation {
 
     companion object {
         fun getViewConfigure(
