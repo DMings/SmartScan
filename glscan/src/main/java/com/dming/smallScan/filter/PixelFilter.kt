@@ -18,7 +18,7 @@ class PixelFilter(mContext: Context) : IShader {
     private var mProgram: Int = 0
     private var mPosition: Int = 0
     private var mTextureCoordinate: Int = 0
-    private var mImageOESTexture: Int = 0
+    private var mImageTexture: Int = 0
     private var uMvpMatrix: Int = 0
     private var uTexMatrix: Int = 0
     private var mMvpMatrix = FloatArray(16)
@@ -34,7 +34,7 @@ class PixelFilter(mContext: Context) : IShader {
         )
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition")
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate")
-        mImageOESTexture = GLES20.glGetUniformLocation(mProgram, "inputImageOESTexture")
+        mImageTexture = GLES20.glGetUniformLocation(mProgram, "inputImageTexture")
         uMvpMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix")
         uTexMatrix = GLES20.glGetUniformLocation(mProgram, "uTexMatrix")
         Matrix.setIdentityM(mIdentityMatrix, 0)
@@ -82,7 +82,7 @@ class PixelFilter(mContext: Context) : IShader {
         GLES20.glUniformMatrix4fv(uTexMatrix, 1, false, texMatrix, 0)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
-        GLES20.glUniform1i(mImageOESTexture, 0)
+        GLES20.glUniform1i(mImageTexture, 0)
         GLES20.glViewport(x, y, width, height)
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES, VERTEX_INDEX.size,

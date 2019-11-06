@@ -1,2 +1,2 @@
 include ':app',":glscan"
-rootProject.name='SamllScan'
+rootProject.name='SmartScan'
