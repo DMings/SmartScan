@@ -19,10 +19,10 @@ class PixelHandler(looper: Looper) : Handler(looper) {
         hs: Float,
         maxWidth: Int,
         maxHeight: Int,
-        useMinSize: Boolean
+        scanMustSquare: Boolean
     ) {
         val viewConfigure =
-            ScanLayoutLocation.getViewConfigure(t, ws, hs, maxWidth, maxHeight, useMinSize)
+            ScanLayoutLocation.getViewConfigure(t, ws, hs, maxWidth, maxHeight, scanMustSquare)
         this.left = viewConfigure.left
         this.top = viewConfigure.top
         this.width = viewConfigure.width()

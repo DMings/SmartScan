@@ -8,18 +8,22 @@
 
 
 <!--    app:scanBackground="@color/scanBackground"-->
-<!--    app:scanCrop="@drawable/scan_crop_bg"-->
-<!--    app:scanLine="@drawable/scan_progress"-->
+<!--    app:scanLine="@drawable/scan_line"-->
+<!--    app:scanCorner="@drawable/scan_corner_bg"-->
+<!--    app:scanFrameLineColor="#999"-->
+<!--    app:scanFrameLineWidth="1px"-->
+<!--    app:scanCorner="@drawable/scan_corner_bg"-->
+<!--    app:scanLine="@drawable/scan_line"-->
 
     <com.dming.smallScan.GLScanView
         android:id="@+id/glScanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:addOneDCode="true"
-        app:scanPercentWidth="0.65"
-        app:scanPercentHeight="0.8"
-        app:useMinSize="true"
-        app:scanPercentTopOffset="0.2"/>
+        app:scanPercentWidth="0.72"
+        app:scanPercentHeight="0.6"
+        app:scanMustSquare="true"
+        app:scanPercentTopOffset="0.2"
+        />
 
     <ImageView
         android:id="@+id/btn_back"

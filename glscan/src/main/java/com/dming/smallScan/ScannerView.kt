@@ -2,8 +2,11 @@ package com.dming.smallScan
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 
 
@@ -16,74 +19,105 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private lateinit var mBgPaint: Paint
     private lateinit var mCornerPaint: Paint
     private lateinit var mLineFramePaint: Paint
-    private lateinit var mLaserPaint: Paint
+    private lateinit var mScanLinePaint: Paint
 
     private var mCornerSize: Int = 0
-    private var mCornerThickWidth: Int = 0
-    private var mCornerLineWidth: Int = 0
-    private var mLaserSize: Int = 0
+    private var mCornerThick: Int = 0
+    private var mFrameLineWidth: Int = 0
+    private var mScanLineSize: Int = 0
+    private var mScanColor: Int = 0
 
     private var mScannerRect: Rect? = null
     private var mOvalRect: RectF? = null
 
     private var mAnimator: ValueAnimator? = null
+    private var mAnimatorDuration: Long = 3000
     private var mAnimatedFraction: Float = 0f
-    private var mLaserMoveHeight: Float = 0f
+    private var mScanLineMoveHeight: Float = 0f
 
-    init {
-        init()
-    }
+    private var mScanLineDrawable: Drawable? = null
+    private var mScanCornerDrawable: Drawable? = null
 
     /**
      * 一些初始化操作
      */
-    private fun init() {
-
-        val tingColor = -0xff0100
-        val bgColor = 0x33000000
+    fun initWithAttribute(typedArray: TypedArray) {
+        val oneDP = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 1f,
+            this.resources.displayMetrics
+        )
+        mScanLineDrawable =
+            typedArray.getDrawable(R.styleable.GLScanView_scanLine)
+        mScanCornerDrawable =
+            typedArray.getDrawable(R.styleable.GLScanView_scanCorner)
+        if (mScanCornerDrawable == null) { // 有扫描框图片用图片
+            //角长度
+            mCornerSize =
+                typedArray.getDimension(R.styleable.GLScanView_scanCornerSize, 18 * oneDP).toInt()
+            //角宽
+            mCornerThick =
+                typedArray.getDimension(R.styleable.GLScanView_scanCornerThick, 3 * oneDP).toInt()
+        }
+        // 扫描线尺寸
+        mScanLineSize =
+            typedArray.getDimension(R.styleable.GLScanView_scanLineWidth, 6 * oneDP).toInt()
+        // 扫描角和扫描框颜色
+        mScanColor = typedArray.getColor(
+            R.styleable.GLScanView_scanColor,
+            context.resources.getColor(R.color.scanColor)
+        )
+        // 框线宽
+        mFrameLineWidth =
+            typedArray.getDimension(R.styleable.GLScanView_scanFrameLineWidth, 0f).toInt()
+        // 背景色和框线
+        val scanBackground = typedArray.getColor(
+            R.styleable.GLScanView_scanBackground,
+            context.resources.getColor(R.color.scanBackground)
+        )
+        val scanFrameLineColor = typedArray.getColor(
+            R.styleable.GLScanView_scanFrameLineColor,
+            context.resources.getColor(R.color.scanBackground)
+        )
 
         mBgPaint = Paint()
         mCornerPaint = Paint()
         mLineFramePaint = Paint()
-        mLaserPaint = Paint()
+        mScanLinePaint = Paint()
 
-        mBgPaint.color = bgColor
+        mBgPaint.color = scanBackground
         mBgPaint.isAntiAlias = true
 
+        val cornerColor = mScanColor and 0x00FFFFFF or 0xFF000000.toInt()
         mCornerPaint.isAntiAlias = true
-        mCornerPaint.color = tingColor
+        mCornerPaint.color = cornerColor
 
         mLineFramePaint.isAntiAlias = true
-        mLineFramePaint.color = Color.WHITE
+        mLineFramePaint.color = scanFrameLineColor
 
-        mLaserPaint.isAntiAlias = true
-        mLaserPaint.color = tingColor
+        mScanLinePaint.isAntiAlias = true
 
-        mCornerSize = 100
-        mCornerThickWidth = 15
-        mCornerLineWidth = 1
-        mLaserSize = 20
     }
 
     fun changeScanConfigure(scannerRect: Rect) {
         mScannerRect = scannerRect
         mScannerRect?.let { rect ->
-
-            val ovalRect  = RectF(
+            val ovalRect = RectF(
                 0f,
-               0f,
+                0f,
                 scannerRect.width().toFloat(),
-                mLaserSize.toFloat()
+                mScanLineSize.toFloat()
             )
+            val statColor = mScanColor and 0x00FFFFFF or 0xAA000000.toInt()
+            val endColor = mScanColor and 0x00FFFFFF or 0x10000000
             val linearGradient = LinearGradient(
                 ovalRect.left,
                 ovalRect.bottom,
                 ovalRect.width() / 2,
                 ovalRect.bottom,
-                0x1000ff00,-0x55ff0100,  Shader.TileMode.MIRROR
+                endColor, statColor, Shader.TileMode.MIRROR
             )
             mOvalRect = ovalRect
-            mLaserPaint.shader = linearGradient
+            mScanLinePaint.shader = linearGradient
             if (mAnimator != null) {
                 mAnimator!!.removeAllUpdateListeners()
             }
@@ -99,7 +133,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
             }
             mAnimator?.let { animator ->
                 animator.cancel()
-                animator.duration = 3000
+                animator.duration = mAnimatorDuration
                 animator.repeatMode = ValueAnimator.RESTART
                 animator.repeatCount = ValueAnimator.INFINITE
                 animator.start()
@@ -114,54 +148,71 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val width = width
-        val height = height
+        drawBg(canvas) // 背景
+        drawFrameLineRect(canvas) // 框边
+        //
+        if (mScanCornerDrawable != null) { // 四个角
+            drawCornerDrawable(canvas)
+        } else {
+            drawCorner(canvas)
+        }
+        if (mScanLineDrawable != null) {  // 扫描线
+            drawScanLineDrawable(canvas)
+        } else {
+            drawScanLine(canvas)
+        }
+    }
+
+    private fun drawBg(canvas: Canvas) {
         mScannerRect?.let {
-            canvas.drawRect(0f, 0f, width.toFloat(), it.top.toFloat(), mBgPaint)
+            canvas.drawRect(
+                0f,
+                0f,
+                width.toFloat(),
+                it.top.toFloat(),
+                mBgPaint
+            )
             canvas.drawRect(
                 0f,
                 it.top.toFloat(),
                 it.left.toFloat(),
-                (it.bottom + 1).toFloat(),
+                it.bottom.toFloat(),
                 mBgPaint
             )
             canvas.drawRect(
-                (it.right + 1).toFloat(),
+                it.right.toFloat(),
                 it.top.toFloat(),
                 width.toFloat(),
-                (it.bottom + 1).toFloat(),
+                it.bottom .toFloat(),
                 mBgPaint
             )
             canvas.drawRect(
                 0f,
-                (it.bottom + 1).toFloat(),
+                it.bottom .toFloat(),
                 width.toFloat(),
                 height.toFloat(),
                 mBgPaint
             )
-            drawCorner(canvas, mScannerRect)
-            drawCornerLineRect(canvas, it)
-            drawLaser(canvas, it)
         }
     }
 
     /**
      * 绘制矩形框的四个角
      */
-    private fun drawCorner(canvas: Canvas, rect: Rect?) {
-        rect?.let {
+    private fun drawCorner(canvas: Canvas) {
+        mScannerRect?.let {
             //绘制左上角
             canvas.drawRect(
                 it.left.toFloat(),
                 it.top.toFloat(),
                 (it.left + mCornerSize).toFloat(),
-                (it.top + mCornerThickWidth).toFloat(),
+                (it.top + mCornerThick).toFloat(),
                 mCornerPaint
             )
             canvas.drawRect(
                 it.left.toFloat(),
                 it.top.toFloat(),
-                (it.left + mCornerThickWidth).toFloat(),
+                (it.left + mCornerThick).toFloat(),
                 (it.top + mCornerSize).toFloat(),
                 mCornerPaint
             )
@@ -169,7 +220,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
             //绘制左下角
             canvas.drawRect(
                 it.left.toFloat(),
-                (it.bottom - mCornerThickWidth).toFloat(),
+                (it.bottom - mCornerThick).toFloat(),
                 (it.left + mCornerSize).toFloat(),
                 it.bottom.toFloat(),
                 mCornerPaint
@@ -177,7 +228,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
             canvas.drawRect(
                 it.left.toFloat(),
                 (it.bottom - mCornerSize).toFloat(),
-                (it.left + mCornerThickWidth).toFloat(),
+                (it.left + mCornerThick).toFloat(),
                 it.bottom.toFloat(),
                 mCornerPaint
             )
@@ -187,11 +238,11 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
                 (it.right - mCornerSize).toFloat(),
                 it.top.toFloat(),
                 it.right.toFloat(),
-                (it.top + mCornerThickWidth).toFloat(),
+                (it.top + mCornerThick).toFloat(),
                 mCornerPaint
             )
             canvas.drawRect(
-                (it.right - mCornerThickWidth).toFloat(),
+                (it.right - mCornerThick).toFloat(),
                 it.top.toFloat(),
                 it.right.toFloat(),
                 (it.top + mCornerSize).toFloat(),
@@ -201,13 +252,13 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
             //绘制右下角
             canvas.drawRect(
                 (it.right - mCornerSize).toFloat(),
-                (it.bottom - mCornerThickWidth).toFloat(),
+                (it.bottom - mCornerThick).toFloat(),
                 it.right.toFloat(),
                 it.bottom.toFloat(),
                 mCornerPaint
             )
             canvas.drawRect(
-                (it.right - mCornerThickWidth).toFloat(),
+                (it.right - mCornerThick).toFloat(),
                 (it.bottom - mCornerSize).toFloat(),
                 it.right.toFloat(),
                 it.bottom.toFloat(),
@@ -217,50 +268,96 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     }
 
     /**
-     * 绘制框
+     * 绘制矩形框的四个角
      */
-    private fun drawCornerLineRect(canvas: Canvas, rect: Rect) {
-        canvas.drawRect(
-            (rect.left + mCornerSize).toFloat(),
-            rect.top.toFloat(),
-            (rect.right - mCornerSize).toFloat(),
-            (rect.top + mCornerLineWidth).toFloat(),
-            mLineFramePaint
-        )
-        canvas.drawRect(
-            (rect.right - mCornerLineWidth).toFloat(),
-            (rect.top + mCornerSize).toFloat(),
-            rect.right.toFloat(),
-            (rect.bottom - mCornerSize).toFloat(),
-            mLineFramePaint
-        )
-        canvas.drawRect(
-            (rect.left + mCornerSize).toFloat(),
-            (rect.bottom - mCornerLineWidth).toFloat(),
-            (rect.right - mCornerSize).toFloat(),
-            rect.bottom.toFloat(),
-            mLineFramePaint
-        )
-        canvas.drawRect(
-            rect.left.toFloat(),
-            (rect.top + mCornerSize).toFloat(),
-            (rect.left + mCornerLineWidth).toFloat(),
-            (rect.bottom - mCornerSize).toFloat(),
-            mLineFramePaint
-        )
+    private fun drawCornerDrawable(canvas: Canvas) {
+        mScanCornerDrawable?.let { scanCornerDrawable ->
+            mScannerRect?.let { rect ->
+                scanCornerDrawable.setBounds(
+                    rect.left,
+                    rect.top,
+                    rect.right,
+                    rect.bottom
+                )
+            }
+            scanCornerDrawable.draw(canvas)
+        }
     }
 
     /**
-     * 绘制激光线
+     * 绘制框
      */
-    private fun drawLaser(canvas: Canvas, rect: Rect) {
-        canvas.save()
-        mLaserMoveHeight = rect.height() - mOvalRect!!.height()
-        canvas.translate(
-            rect.left.toFloat(), rect.top + mLaserMoveHeight * mAnimatedFraction
-        )
-        canvas.drawOval(mOvalRect!!, mLaserPaint)
-        canvas.restore()
+    private fun drawFrameLineRect(canvas: Canvas) {
+        mScannerRect?.let {
+            canvas.drawRect(
+                (it.left + mCornerSize).toFloat(),
+                it.top.toFloat(),
+                (it.right - mCornerSize).toFloat(),
+                (it.top + mFrameLineWidth).toFloat(),
+                mLineFramePaint
+            )
+            canvas.drawRect(
+                (it.right - mFrameLineWidth).toFloat(),
+                (it.top + mCornerSize).toFloat(),
+                it.right.toFloat(),
+                (it.bottom - mCornerSize).toFloat(),
+                mLineFramePaint
+            )
+            canvas.drawRect(
+                (it.left + mCornerSize).toFloat(),
+                (it.bottom - mFrameLineWidth).toFloat(),
+                (it.right - mCornerSize).toFloat(),
+                it.bottom.toFloat(),
+                mLineFramePaint
+            )
+            canvas.drawRect(
+                it.left.toFloat(),
+                (it.top + mCornerSize).toFloat(),
+                (it.left + mFrameLineWidth).toFloat(),
+                (it.bottom - mCornerSize).toFloat(),
+                mLineFramePaint
+            )
+        }
+    }
+
+    /**
+     * 绘制扫描线
+     */
+    private fun drawScanLine(canvas: Canvas) {
+        mScannerRect?.let {
+            canvas.save()
+            mScanLineMoveHeight = it.height() - mOvalRect!!.height()
+            canvas.translate(
+                it.left.toFloat(), it.top + mScanLineMoveHeight * mAnimatedFraction
+            )
+            canvas.drawOval(mOvalRect!!, mScanLinePaint)
+            canvas.restore()
+        }
+    }
+
+    /**
+     * 绘制扫描线 Drawable
+     */
+    private fun drawScanLineDrawable(canvas: Canvas) {
+        mScanLineDrawable?.let { scanLineDrawable ->
+            mScannerRect?.let {
+                canvas.save()
+                mScanLineMoveHeight = it.height() - mOvalRect!!.height()
+                canvas.translate(
+                    it.left.toFloat(), it.top + mScanLineMoveHeight * mAnimatedFraction
+                )
+                mOvalRect?.let { ovalRect ->
+                    scanLineDrawable.setBounds(
+                        ovalRect.left.toInt(),
+                        ovalRect.top.toInt(),
+                        ovalRect.right.toInt(),
+                        ovalRect.bottom.toInt()
+                    )
+                }
+                scanLineDrawable.draw(canvas)
+                canvas.restore()
+            }
+        }
     }
 
 }

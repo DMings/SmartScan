@@ -1,16 +1,11 @@
 package com.dming.smallScan
 
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.ScaleGestureDetector
 import android.view.SurfaceHolder
 import android.view.View
-import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import com.dming.smallScan.utils.DLog
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.ReaderException
@@ -25,12 +20,12 @@ import java.nio.ByteBuffer
 class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
 
     private val mGLCameraManager = GLCameraManager()
-    private var mTop: Float = 0f
-    private var mWidth: Float = 0f
-    private var mHeight: Float = 0f
-    private var mIsUseMinSize: Boolean = false
-    private var mIsHasScanLine: Boolean = false
-    private var mAnimator: ObjectAnimator? = null
+    private var mScanTop: Float = 0f
+    private var mScanWidth: Float = 0f
+    private var mScanHeight: Float = 0f
+    private var mViewWidth: Int = 0
+    private var mViewHeight: Int = 0
+    private var mScanMustSquare: Boolean = false
     private var mOnGrayImg: ((width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit)? = null
     private var mOnDecodeThreadResult: ((text: String) -> Unit)? = null
     private var mOnUIThreadResult: ((text: String) -> Unit)? = null
@@ -79,17 +74,9 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
             } else {
                 scanTopOffset
             }
-            val scanLine =
-                typedArray.getDrawable(R.styleable.GLScanView_scanLine)
-            val scanCrop =
-                typedArray.getDrawable(R.styleable.GLScanView_scanCrop)
-            val scanBackground = typedArray.getColor(
-                R.styleable.GLScanView_scanBackground,
-                context.resources.getColor(R.color.scanBackground)
-            )
+            mScanMustSquare = typedArray.getBoolean(R.styleable.GLScanView_scanMustSquare, true)
             val addOneDCode = typedArray.getBoolean(R.styleable.GLScanView_addOneDCode, false)
             val onlyOneDCode = typedArray.getBoolean(R.styleable.GLScanView_onlyOneDCode, false)
-            mIsUseMinSize = typedArray.getBoolean(R.styleable.GLScanView_useMinSize, false)
 
             if (addOneDCode || onlyOneDCode) {
                 mOneReader = MultiFormatOneDReader(null)
@@ -97,58 +84,12 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
             if (!onlyOneDCode) {
                 mQRReader = QRCodeReader()
             }
-
+            scannerView.initWithAttribute(typedArray)
             typedArray.recycle()
-            if (scanLine != null) {
-                iv_scan_progress.setImageDrawable(scanLine)
-                mIsHasScanLine = true
-            }
-            if (scanCrop != null) {
-                iv_get_img.setImageDrawable(scanCrop)
-            }
-            mTop = scanTopOffset
-            mWidth = scanWidth
-            mHeight = scanHeight
-            v_left.setBackgroundColor(scanBackground)
-            v_top.setBackgroundColor(scanBackground)
-            v_right.setBackgroundColor(scanBackground)
-            v_bottom.setBackgroundColor(scanBackground)
+            mScanTop = scanTopOffset
+            mScanWidth = scanWidth
+            mScanHeight = scanHeight
         }
-    }
-
-    private fun changeVieConfigure(
-        t: Float,
-        ws: Float,
-        hs: Float,
-        maxWidth: Int,
-        maxHeight: Int,
-        hasScanLin: Boolean
-    ): Rect {
-        val viewConfigure =
-            ScanLayoutLocation.getViewConfigure(t, ws, hs, maxWidth, maxHeight, mIsUseMinSize)
-        post {
-            DLog.i("scanSize: ${viewConfigure.width()}  scanTopOffset: ${viewConfigure.top}")
-            fl_get_img.layoutParams =
-                LinearLayout.LayoutParams(viewConfigure.width(), viewConfigure.height())
-            v_top.layoutParams =
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, viewConfigure.top)
-        }
-        if (hasScanLin) {
-            mAnimator =
-                ObjectAnimator.ofFloat(
-                    iv_scan_progress,
-                    "translationY", 0f, viewConfigure.height().toFloat()
-                )
-            mAnimator?.let { animator ->
-                mAnimator?.cancel()
-                animator.duration = 3000
-                animator.repeatMode = ValueAnimator.RESTART
-                animator.repeatCount = ValueAnimator.INFINITE
-                animator.start()
-            }
-        }
-        scannerView.changeScanConfigure(viewConfigure)
-        return viewConfigure
     }
 
     private fun initView(attrs: AttributeSet?) {
@@ -158,7 +99,6 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         glSurfaceView.holder.addCallback(object : SurfaceHolder.Callback {
 
             override fun surfaceCreated(holder: SurfaceHolder?) {
-                DLog.e("surfaceCreated")
                 if (mOnScanViewListener != null) {
                     post { mOnScanViewListener?.onCreate() }
                 }
@@ -171,24 +111,18 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
                 width: Int,
                 height: Int
             ) {
-                DLog.e("surfaceChanged")
                 mCanDecode = true
-                val viewConfigure =
-                    changeVieConfigure(mTop, mWidth, mHeight, width, height, mIsHasScanLine)
-                if (mOnScanViewListener != null) {
-                    post { mOnScanViewListener?.onChange(viewConfigure) }
-                }
-                mGLCameraManager.onSurfaceChanged(width, height)
-                mGLCameraManager.changeQRConfigure(mTop, mWidth, mHeight, mIsUseMinSize)
+                mViewWidth = width
+                mViewHeight = height
+                mGLCameraManager.onSurfaceChanged(mViewWidth, mViewHeight)
+                changeScanConfigure()
             }
 
             override fun surfaceDestroyed(holder: SurfaceHolder?) {
-                DLog.e("surfaceDestroyed")
                 if (mOnScanViewListener != null) {
                     post { mOnScanViewListener?.onDestroy() }
                 }
                 mGLCameraManager.surfaceDestroyed()
-                mAnimator?.cancel()
             }
 
         })
@@ -232,20 +166,50 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
 
     private fun decodeBinaryBitmap(binaryBitmap: BinaryBitmap): Result? {
         try {
-            return mQRReader?.decode(binaryBitmap)
+            val result = mQRReader?.decode(binaryBitmap)
+            if (result != null) {
+                return result
+            }
         } catch (re: ReaderException) {
             // continue
         } finally {
             mQRReader?.reset()
         }
         try {
-            return mOneReader?.decode(binaryBitmap)
+            val result = mOneReader?.decode(binaryBitmap)
+            if (result != null) {
+                return result
+            }
         } catch (re: ReaderException) {
             // continue
         } finally {
             mOneReader?.reset()
         }
         return null
+    }
+
+    private fun changeScanConfigure() {
+        val viewConfigure = ScanLayoutLocation.getViewConfigure(
+            mScanTop,
+            mScanWidth,
+            mScanHeight,
+            mViewWidth,
+            mViewHeight,
+            mScanMustSquare
+        )
+        // 改变扫描框
+        scannerView.changeScanConfigure(viewConfigure)
+        // 改变读取像素
+        mGLCameraManager.changeScanConfigure(
+            mScanTop,
+            mScanWidth,
+            mScanHeight,
+            mScanMustSquare
+        )
+        // 回调变化
+        if (mOnScanViewListener != null) {
+            post { mOnScanViewListener?.onChange(viewConfigure) }
+        }
     }
 
     override fun onScaleEnd(detector: ScaleGestureDetector) {
@@ -297,16 +261,37 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         mCanDecode = false
     }
 
-    fun setCropLocationListener(onScanViewListener: OnScanViewListener) {
-        this.mOnScanViewListener = onScanViewListener
+    fun setViewConfigure(
+        topOffset: Float,
+        scanWidth: Float,
+        scanHeight: Float,
+        scanMustSquare: Boolean
+    ) {
+        mScanTop = topOffset
+        mScanWidth = scanWidth
+        mScanHeight = scanHeight
+        mScanMustSquare = scanMustSquare
+        changeScanConfigure()
     }
 
-    fun changeQRConfigure(
-        t: Float,
-        ws: Float,
-        hs: Float
+    fun setDecodeConfigure(
+        onlyOneDCode: Boolean,
+        addOneDCode: Boolean = false
     ) {
-        mGLCameraManager.changeQRConfigure(t, ws, hs, mIsUseMinSize)
+        mOneReader = if (addOneDCode || onlyOneDCode) {
+            MultiFormatOneDReader(null)
+        } else {
+            null
+        }
+        mQRReader = if (!onlyOneDCode) {
+            QRCodeReader()
+        } else {
+            null
+        }
+    }
+
+    fun setCornerLocationListener(onScanViewListener: OnScanViewListener) {
+        this.mOnScanViewListener = onScanViewListener
     }
 
     fun setFlashLight(on: Boolean): Boolean {
@@ -315,7 +300,6 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        DLog.e("onDetachedFromWindow")
         mGLCameraManager.destroy()
     }
 

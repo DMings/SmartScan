@@ -8,10 +8,16 @@
         <attr name="scanTopOffset" format="dimension" />
         <attr name="scanPercentTopOffset" format="float" />
         <attr name="scanLine" format="reference" />
-        <attr name="scanCrop" format="reference" />
+        <attr name="scanCorner" format="reference" />
         <attr name="scanBackground" format="color" />
         <attr name="addOneDCode" format="boolean" />
         <attr name="onlyOneDCode" format="boolean" />
-        <attr name="useMinSize" format="boolean" />
+        <attr name="scanMustSquare" format="boolean" />
+        <attr name="scanCornerSize" format="dimension" />
+        <attr name="scanCornerThick" format="dimension" />
+        <attr name="scanLineWidth" format="dimension" />
+        <attr name="scanFrameLineWidth" format="dimension" />
+        <attr name="scanFrameLineColor" format="color" />
+        <attr name="scanColor" format="color" />
     </declare-styleable>
 </resources>

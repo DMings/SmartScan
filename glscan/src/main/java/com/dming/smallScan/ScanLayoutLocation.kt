@@ -11,7 +11,7 @@ class ScanLayoutLocation {
             hs: Float,
             maxWidth: Int,
             maxHeight: Int,
-            useMinSize: Boolean
+            scanMustSquare: Boolean
         ): Rect {
             val left: Int
             val top: Int
@@ -30,7 +30,7 @@ class ScanLayoutLocation {
             val tt = if (t <= 1) maxHeight * t else t
             width = if (ww > maxWidth) maxWidth else ww
             height = if (hh > maxHeight) maxHeight else hh
-            if (useMinSize) { // 用最小的边
+            if (scanMustSquare) { // 用最小的边
                 if (width > height) {
                     width = height
                 } else {

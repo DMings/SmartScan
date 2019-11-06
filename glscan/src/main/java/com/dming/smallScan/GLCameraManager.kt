@@ -164,23 +164,23 @@ class GLCameraManager {
 //        mPixelThread.join()
     }
 
-    fun changeQRConfigure(
-        t: Float,
-        ws: Float,
-        hs: Float,
-        useMinSize: Boolean
-    ) {
-        mPixelHandler.post {
-            mPixelHandler.setConfigure(t, ws, hs, mWidth, mHeight, useMinSize)
-        }
-    }
-
     fun onScaleChange(scale: Float) {
         mScale *= scale
         if (mScale < 1.0f) {
             mScale = 1.0f
         } else if (mScale > 3.0f) {
             mScale = 3.0f
+        }
+    }
+
+    fun changeScanConfigure(
+        t: Float,
+        ws: Float,
+        hs: Float,
+        scanMustSquare: Boolean
+    ) {
+        mPixelHandler.post {
+            mPixelHandler.setConfigure(t, ws, hs, mWidth, mHeight, scanMustSquare)
         }
     }
 
