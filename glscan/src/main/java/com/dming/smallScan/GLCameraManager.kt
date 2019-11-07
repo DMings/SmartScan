@@ -10,7 +10,6 @@ import android.view.SurfaceHolder
 import com.dming.smallScan.filter.LuminanceFilter
 import com.dming.smallScan.filter.PixelFilter
 import com.dming.smallScan.filter.PreviewFilter
-import com.dming.smallScan.utils.DLog
 import com.dming.smallScan.utils.EglHelper
 import com.dming.smallScan.utils.FGLUtils
 import java.nio.ByteBuffer
@@ -110,14 +109,14 @@ class GLCameraManager {
             GLES20.glViewport(0, 0, width, height)
             GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-            if (mFrameIds != null) {
-                FGLUtils.deleteFBO(mFrameIds)
+            mFrameIds?.let {
+                FGLUtils.deleteFBO(it)
             }
             mFrameIds = FGLUtils.createFBO(width, height)
             //
             mCamera.surfaceChange(width, height)
             val cameraSize = mCamera.getCameraSize()
-            DLog.i("cameraSize  width: ${cameraSize.width} height: ${cameraSize.height}")
+//            DLog.i("cameraSize  width: ${cameraSize.width} height: ${cameraSize.height}")
             mPreviewFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             mLuminanceFilter.onChange(cameraSize.width, cameraSize.height, width, height)
             //
@@ -144,10 +143,10 @@ class GLCameraManager {
             mPixelSurface?.release()
         }
         mGLHandler.post {
-            if (mFrameIds != null) {
-                FGLUtils.deleteFBO(mFrameIds)
-                mFrameIds = null
+            mFrameIds?.let {
+                FGLUtils.deleteFBO(it)
             }
+            mFrameIds = null
             FGLUtils.deleteTexture(mTextureId)
             mCamera.close()
             mPreviewFilter.onDestroy()

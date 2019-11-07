@@ -1,6 +1,5 @@
 package com.dming.smallScan
 
-import com.dming.smallScan.utils.DLog
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -14,7 +13,7 @@ open class BaseCamera {
 
     protected fun dealCameraSize(width: Int, height: Int, rotation: Int) {
         val lessThanView = ArrayList<CameraSize>()
-        DLog.i("dealCameraSize width>  $width height>> $height rotation: $rotation")
+//        DLog.i("dealCameraSize width>  $width height>> $height rotation: $rotation")
         for (size in mPreviewSizes) {
 //            DLog.i("preview size:$size")
             if (rotation == 90 || rotation == 270) { // normal
@@ -37,7 +36,7 @@ open class BaseCamera {
         if (cSize == null) {
             cSize = lessThanView[0]
         }
-        DLog.i("suitableSize>$cSize")
+//        DLog.i("suitableSize>$cSize")
         mCameraSize =  cSize
     }
 

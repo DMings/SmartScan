@@ -37,7 +37,6 @@ class CameraSize : Comparable<CameraSize> {
     }
 
     override fun hashCode(): Int {
-        // assuming most sizes are <2^16, doing a rotate will give us perfect hashing
         return height xor (width shl Integer.SIZE / 2 or width.ushr(Integer.SIZE / 2))
     }
 

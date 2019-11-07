@@ -19,5 +19,9 @@
         <attr name="scanFrameLineWidth" format="dimension" />
         <attr name="scanFrameLineColor" format="color" />
         <attr name="scanColor" format="color" />
+        <attr name="disableScale" format="boolean" />
+        <attr name="enableBeep" format="boolean" />
+        <attr name="enableVibrate" format="boolean" />
+        <attr name="enableFlashlightBtn" format="boolean" />
     </declare-styleable>
 </resources>

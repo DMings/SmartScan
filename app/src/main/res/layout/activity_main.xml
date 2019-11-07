@@ -8,21 +8,34 @@
 
 
 <!--    app:scanBackground="@color/scanBackground"-->
-<!--    app:scanLine="@drawable/scan_line"-->
-<!--    app:scanCorner="@drawable/scan_corner_bg"-->
+<!--    app:scanLine="@drawable/smart_scan_line"-->
+<!--    app:scanCorner="@drawable/smart_scan_corner_bg"-->
 <!--    app:scanFrameLineColor="#999"-->
 <!--    app:scanFrameLineWidth="1px"-->
-<!--    app:scanCorner="@drawable/scan_corner_bg"-->
-<!--    app:scanLine="@drawable/scan_line"-->
+<!--    app:scanCorner="@drawable/smart_scan_corner_bg"-->
+<!--    app:scanLine="@drawable/smart_scan_line"-->
+
+
+<!--    app:scanMustSquare="true"-->
+<!--    app:scanPercentTopOffset="0.2"-->
+<!--    app:enableBeep="true"-->
+<!--    app:enableVibrate="false"-->
+<!--    app:enableFlashlightBtn="true"-->
+<!--    app:scanFrameLineWidth="0px"-->
+<!--    app:scanCornerSize="0dp"-->
+<!--    app:scanCornerThick="0dp"-->
+<!--    app:scanLineWidth="0dp"-->
 
     <com.dming.smallScan.GLScanView
         android:id="@+id/glScanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:scanMustSquare="false"
+        app:scanPercentTopOffset="0.2"
         app:scanPercentWidth="0.72"
         app:scanPercentHeight="0.6"
-        app:scanMustSquare="true"
-        app:scanPercentTopOffset="0.2"
+        app:scanBackground="#00000000"
+        app:enableFlashlightBtn="true"
         />
 
     <ImageView
@@ -38,13 +51,6 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#33ff0000"/>
-
-    <ImageView
-        android:id="@+id/btn_flash"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:visibility="invisible"
-        android:src="@drawable/flashlight_off"/>
 
     <!--        // test-->
     <ImageView

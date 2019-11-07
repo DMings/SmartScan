@@ -28,7 +28,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private var mScanColor: Int = 0
 
     private var mScannerRect: Rect? = null
-    private var mOvalRect: RectF? = null
+    private var mScannerLineRect: RectF? = null
 
     private var mAnimator: ValueAnimator? = null
     private var mAnimatorDuration: Long = 3000
@@ -64,7 +64,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         // 扫描角和扫描框颜色
         mScanColor = typedArray.getColor(
             R.styleable.GLScanView_scanColor,
-            context.resources.getColor(R.color.scanColor)
+            context.resources.getColor(R.color.smartScanColor)
         )
         // 框线宽
         mFrameLineWidth =
@@ -72,11 +72,11 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         // 背景色和框线
         val scanBackground = typedArray.getColor(
             R.styleable.GLScanView_scanBackground,
-            context.resources.getColor(R.color.scanBackground)
+            context.resources.getColor(R.color.smartScanBackground)
         )
         val scanFrameLineColor = typedArray.getColor(
             R.styleable.GLScanView_scanFrameLineColor,
-            context.resources.getColor(R.color.scanBackground)
+            context.resources.getColor(R.color.smartScanBackground)
         )
 
         mBgPaint = Paint()
@@ -116,22 +116,24 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
                 ovalRect.bottom,
                 endColor, statColor, Shader.TileMode.MIRROR
             )
-            mOvalRect = ovalRect
+            mScannerLineRect = ovalRect
             mScanLinePaint.shader = linearGradient
             if (mAnimator != null) {
                 mAnimator!!.removeAllUpdateListeners()
             }
-            mAnimator = ValueAnimator.ofFloat(0f, rect.height().toFloat())
-            mAnimator!!.addUpdateListener { animation: ValueAnimator ->
-                mAnimatedFraction = animation.animatedFraction
-                postInvalidateOnAnimation(
-                    rect.left,
-                    rect.top,
-                    rect.right,
-                    rect.bottom
-                )
+            if (ovalRect.height() > 0) {
+                mAnimator = ValueAnimator.ofFloat(0f, rect.height().toFloat())
             }
             mAnimator?.let { animator ->
+                animator.addUpdateListener { animation: ValueAnimator ->
+                    mAnimatedFraction = animation.animatedFraction
+                    postInvalidateOnAnimation(
+                        rect.left,
+                        rect.top,
+                        rect.right,
+                        rect.bottom
+                    )
+                }
                 animator.cancel()
                 animator.duration = mAnimatorDuration
                 animator.repeatMode = ValueAnimator.RESTART
@@ -183,12 +185,12 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
                 it.right.toFloat(),
                 it.top.toFloat(),
                 width.toFloat(),
-                it.bottom .toFloat(),
+                it.bottom.toFloat(),
                 mBgPaint
             )
             canvas.drawRect(
                 0f,
-                it.bottom .toFloat(),
+                it.bottom.toFloat(),
                 width.toFloat(),
                 height.toFloat(),
                 mBgPaint
@@ -324,14 +326,16 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
      * 绘制扫描线
      */
     private fun drawScanLine(canvas: Canvas) {
-        mScannerRect?.let {
-            canvas.save()
-            mScanLineMoveHeight = it.height() - mOvalRect!!.height()
-            canvas.translate(
-                it.left.toFloat(), it.top + mScanLineMoveHeight * mAnimatedFraction
-            )
-            canvas.drawOval(mOvalRect!!, mScanLinePaint)
-            canvas.restore()
+        mScannerLineRect?.let { lineRect ->
+            mScannerRect?.let {
+                canvas.save()
+                mScanLineMoveHeight = it.height() - lineRect.height()
+                canvas.translate(
+                    it.left.toFloat(), it.top + mScanLineMoveHeight * mAnimatedFraction
+                )
+                canvas.drawOval(lineRect, mScanLinePaint)
+                canvas.restore()
+            }
         }
     }
 
@@ -339,23 +343,23 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
      * 绘制扫描线 Drawable
      */
     private fun drawScanLineDrawable(canvas: Canvas) {
-        mScanLineDrawable?.let { scanLineDrawable ->
-            mScannerRect?.let {
-                canvas.save()
-                mScanLineMoveHeight = it.height() - mOvalRect!!.height()
-                canvas.translate(
-                    it.left.toFloat(), it.top + mScanLineMoveHeight * mAnimatedFraction
-                )
-                mOvalRect?.let { ovalRect ->
-                    scanLineDrawable.setBounds(
-                        ovalRect.left.toInt(),
-                        ovalRect.top.toInt(),
-                        ovalRect.right.toInt(),
-                        ovalRect.bottom.toInt()
+        mScannerLineRect?.let { lineRect ->
+            mScanLineDrawable?.let { scanLineDrawable ->
+                mScannerRect?.let {
+                    canvas.save()
+                    mScanLineMoveHeight = it.height() - lineRect.height()
+                    canvas.translate(
+                        it.left.toFloat(), it.top + mScanLineMoveHeight * mAnimatedFraction
                     )
+                    scanLineDrawable.setBounds(
+                        lineRect.left.toInt(),
+                        lineRect.top.toInt(),
+                        lineRect.right.toInt(),
+                        lineRect.bottom.toInt()
+                    )
+                    scanLineDrawable.draw(canvas)
+                    canvas.restore()
                 }
-                scanLineDrawable.draw(canvas)
-                canvas.restore()
             }
         }
     }
