@@ -21,6 +21,7 @@
         <activity
             android:name="com.dming.demo.CameraActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity android:name=".CreateViewActivity" />
     </application>
 
 </manifest>

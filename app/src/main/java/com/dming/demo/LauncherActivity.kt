@@ -20,7 +20,7 @@ class LauncherActivity : AppCompatActivity() {
         ) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 666)
         } else {
-            startActivity(Intent(this, CameraActivity::class.java))
+            startActivity(Intent(this, CreateViewActivity::class.java))
             finish()
         }
     }

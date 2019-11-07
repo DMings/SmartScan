@@ -38,7 +38,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     /**
      * 一些初始化操作
      */
-    fun initWithAttribute(gLViewParameter: GLViewParameter) {
+    fun initWithParameter(gLViewParameter: GLViewParameter) {
         mScanLineDrawable = gLViewParameter.scanLine
         mScanCornerDrawable = gLViewParameter.scanCorner
         if (mScanCornerDrawable == null) { // 有扫描框图片用图片

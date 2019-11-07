@@ -55,7 +55,15 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         attrs,
         defStyleAttr
     ) {
-        initView(attrs)
+        if (attrs != null) {
+            val gLViewParameter = getParameterByAttribute(attrs)
+            initWithParameter(gLViewParameter)
+        }
+    }
+
+    @Suppress("unused")
+    fun initWithParameter(gLViewParameter: GLViewParameter) {
+        initView(gLViewParameter)
         initEvent()
     }
 
@@ -168,7 +176,7 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
     }
 
     @Suppress("DEPRECATION")
-    fun initWithParameter(gLViewParameter: GLViewParameter) {
+    private fun initScanView(gLViewParameter: GLViewParameter) {
         mScanMustSquare = gLViewParameter.scanMustSquare
         mDisableScale = gLViewParameter.disableScale
         if ((gLViewParameter.enableBeep || gLViewParameter.enableVibrate) && context is Activity) {
@@ -185,17 +193,19 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         if (!gLViewParameter.onlyOneDCode) {
             mQRReader = QRCodeReader()
         }
-        scannerView.initWithAttribute(gLViewParameter)
+        scannerView.initWithParameter(gLViewParameter)
         flashlightInit(gLViewParameter.enableFlashlightBtn)
-        mScanTop = gLViewParameter.scanTopOffset
-        mScanWidth = gLViewParameter.scanWidth
-        mScanHeight = gLViewParameter.scanHeight
+        mScanTop = if (gLViewParameter.scanTopOffset > 0) gLViewParameter.scanTopOffset else
+            gLViewParameter.scanPercentTopOffset
+        mScanWidth = if (gLViewParameter.scanWidth > 0) gLViewParameter.scanWidth else
+            gLViewParameter.scanPercentWidth
+        mScanHeight = if (gLViewParameter.scanHeight > 0) gLViewParameter.scanHeight else
+            gLViewParameter.scanPercentHeight
     }
 
-    private fun initView(attrs: AttributeSet?) {
+    private fun initView(gLViewParameter: GLViewParameter) {
         View.inflate(context, R.layout.layout_gl_qr, this)
-        val gLViewParameter = getParameterByAttribute(attrs)
-        initWithParameter(gLViewParameter)
+        initScanView(gLViewParameter)
         mGLCameraManager.init(context)
         glSurfaceView.holder.addCallback(object : SurfaceHolder.Callback {
 

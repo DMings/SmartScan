@@ -110,10 +110,10 @@ object ShaderHelper {
         GLES20.glGetProgramiv(programObjectId, GLES20.GL_LINK_STATUS, linkStatus, 0)
 
         // 打印链接信息
-        DLog.i(
-            "Results of linking program:\n"
-                    + GLES20.glGetProgramInfoLog(programObjectId)
-        )
+//        DLog.i(
+//            "Results of linking program:\n"
+//                    + GLES20.glGetProgramInfoLog(programObjectId)
+//        )
 
         // 6.验证链接状态
         if (linkStatus[0] == 0) {
