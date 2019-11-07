@@ -8,6 +8,9 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
+/**
+ * 编译GL程序工具类
+ */
 object ShaderHelper {
 
     /**

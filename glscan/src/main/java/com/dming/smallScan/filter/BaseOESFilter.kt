@@ -10,6 +10,9 @@ import com.dming.smallScan.utils.ShaderHelper
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
+/**
+ * 绘制cameraOES数据基类
+ */
 open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
 
     private var mIndexSB: ShortBuffer

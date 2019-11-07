@@ -1,5 +1,8 @@
 package com.dming.smallScan;
 
+/**
+ * GL的着色器必须实现
+ */
 interface IShader {
 
     fun onChange(imgWidth: Int, imgHeight: Int,width: Int, height: Int)

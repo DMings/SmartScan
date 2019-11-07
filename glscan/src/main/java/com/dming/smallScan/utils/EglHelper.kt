@@ -4,6 +4,9 @@ import android.opengl.EGL14
 import android.view.Surface
 import javax.microedition.khronos.egl.*
 
+/**
+ * EGL环境帮助类
+ */
 class EglHelper {
     private var mEgl: EGL10? = null
     private var mEglDisplay: EGLDisplay? = null

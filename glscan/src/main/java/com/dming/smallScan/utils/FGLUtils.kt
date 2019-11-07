@@ -5,6 +5,9 @@ import android.opengl.GLES20
 
 import javax.microedition.khronos.opengles.GL10
 
+/**
+ * GL工具类
+ */
 object FGLUtils {
 
     fun createFBO(width: Int, height: Int): IntArray? {

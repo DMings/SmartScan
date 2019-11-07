@@ -15,7 +15,9 @@ import com.dming.smallScan.utils.FGLUtils
 import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantLock
 
-
+/**
+ * 控制camera绘制到GL的管理类
+ */
 class GLCameraManager {
     private val mCamera = Camera1()
     private val mCameraMatrix = FloatArray(16)

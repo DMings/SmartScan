@@ -4,6 +4,9 @@ import android.os.Handler
 import android.os.Looper
 import java.nio.ByteBuffer
 
+/**
+ * 读取GL数据线程的Handler,内部保存解码信息，目的在退出时候不join，同时也不出错
+ */
 class PixelHandler(looper: Looper) : Handler(looper) {
 
     var buffer: ByteBuffer? = null

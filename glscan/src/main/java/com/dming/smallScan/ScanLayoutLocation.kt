@@ -2,6 +2,9 @@ package com.dming.smallScan
 
 import android.graphics.Rect
 
+/**
+ * 扫描view的窗口定位计算
+ */
 class ScanLayoutLocation {
 
     companion object {

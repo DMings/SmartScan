@@ -19,6 +19,9 @@ import com.google.zxing.qrcode.QRCodeReader
 import kotlinx.android.synthetic.main.layout_gl_qr.view.*
 import java.nio.ByteBuffer
 
+/**
+ * 扫码View核心类
+ */
 @Suppress("UNUSED")
 class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
 
@@ -56,65 +59,143 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         initEvent()
     }
 
-    @Suppress("DEPRECATION")
-    private fun initAttribute(attrs: AttributeSet?) {
+    private fun getParameterByAttribute(attrs: AttributeSet?): GLViewParameter {
+        val gLViewParameter = GLViewParameter()
         attrs?.let {
             val typedArray = context.obtainStyledAttributes(it, R.styleable.GLScanView)
-            //
+            var scanPercentWidth = 0f
             var scanWidth = typedArray.getFloat(R.styleable.GLScanView_scanPercentWidth, 0f)
             scanWidth = if (scanWidth == 0f) {
-                typedArray.getDimension(R.styleable.GLScanView_scanWidth, 0f)
+                scanPercentWidth = typedArray.getDimension(R.styleable.GLScanView_scanWidth, 0f)
+                scanPercentWidth
             } else {
                 scanWidth
             }
-            //
+            var scanPercentHeight = 0f
             var scanHeight = typedArray.getFloat(R.styleable.GLScanView_scanPercentHeight, 0f)
             scanHeight = if (scanHeight == 0f) {
-                typedArray.getDimension(R.styleable.GLScanView_scanHeight, 0f)
+                scanPercentHeight = typedArray.getDimension(R.styleable.GLScanView_scanHeight, 0f)
+                scanPercentHeight
             } else {
                 scanHeight
             }
-            // <<----
+            var scanPercentTopOffset = 0f
             var scanTopOffset = typedArray.getFloat(R.styleable.GLScanView_scanPercentTopOffset, 0f)
             scanTopOffset = if (scanTopOffset == 0f) {
-                typedArray.getDimension(R.styleable.GLScanView_scanTopOffset, 0f)
+                scanPercentTopOffset =
+                    typedArray.getDimension(R.styleable.GLScanView_scanTopOffset, 0f)
+                scanPercentTopOffset
             } else {
                 scanTopOffset
             }
-            mScanMustSquare = typedArray.getBoolean(R.styleable.GLScanView_scanMustSquare, true)
+            val scanMustSquare = typedArray.getBoolean(R.styleable.GLScanView_scanMustSquare, true)
 
             val enableFlashlightBtn =
                 typedArray.getBoolean(R.styleable.GLScanView_enableFlashlightBtn, false)
-            mDisableScale = typedArray.getBoolean(R.styleable.GLScanView_disableScale, false)
+            val disableScale = typedArray.getBoolean(R.styleable.GLScanView_disableScale, false)
 
             val enableBeep = typedArray.getBoolean(R.styleable.GLScanView_enableBeep, false)
             val enableVibrate = typedArray.getBoolean(R.styleable.GLScanView_enableVibrate, false)
-            if ((enableBeep || enableVibrate) && context is Activity) {
-                mBeepVibrateManager =
-                    BeepVibrateManager(context as Activity, enableBeep, enableVibrate)
-            }
 
             val addOneDCode = typedArray.getBoolean(R.styleable.GLScanView_addOneDCode, false)
             val onlyOneDCode = typedArray.getBoolean(R.styleable.GLScanView_onlyOneDCode, false)
 
-            if (addOneDCode || onlyOneDCode) {
-                mOneReader = MultiFormatOneDReader(null)
+            val oneDP = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 1f,
+                this.resources.displayMetrics
+            )
+            val scanLine =
+                typedArray.getDrawable(R.styleable.GLScanView_scanLine)
+            val scanCorner =
+                typedArray.getDrawable(R.styleable.GLScanView_scanCorner)
+            var scanCornerSize = 0f
+            var scanCornerThick = 0f
+            if (scanCorner == null) { // 有扫描框图片用图片
+                //角长度
+                scanCornerSize =
+                    typedArray.getDimension(R.styleable.GLScanView_scanCornerSize, 18 * oneDP)
+                //角宽
+                scanCornerThick =
+                    typedArray.getDimension(R.styleable.GLScanView_scanCornerThick, 3 * oneDP)
             }
-            if (!onlyOneDCode) {
-                mQRReader = QRCodeReader()
-            }
-            scannerView.initWithAttribute(typedArray)
-            flashlightInit(enableFlashlightBtn)
+            // 扫描线尺寸
+            val scanLineWidth =
+                typedArray.getDimension(R.styleable.GLScanView_scanLineWidth, 6 * oneDP)
+            // 扫描角和扫描框颜色
+            val scanColor = typedArray.getColor(
+                R.styleable.GLScanView_scanColor,
+                context.resources.getColor(R.color.smartScanColor)
+            )
+            // 框线宽
+            val scanFrameLineWidth =
+                typedArray.getDimension(R.styleable.GLScanView_scanFrameLineWidth, 0f)
+            // 背景色和框线
+            val scanBackgroundColor = typedArray.getColor(
+                R.styleable.GLScanView_scanBackgroundColor,
+                context.resources.getColor(R.color.smartScanBackground)
+            )
+            val scanFrameLineColor = typedArray.getColor(
+                R.styleable.GLScanView_scanFrameLineColor,
+                context.resources.getColor(R.color.smartScanBackground)
+            )
             typedArray.recycle()
-            mScanTop = scanTopOffset
-            mScanWidth = scanWidth
-            mScanHeight = scanHeight
+            gLViewParameter.apply {
+                this.scanWidth = scanWidth
+                this.scanHeight = scanHeight
+                this.scanPercentWidth = scanPercentWidth
+                this.scanPercentHeight = scanPercentHeight
+                this.scanTopOffset = scanTopOffset
+                this.scanPercentTopOffset = scanPercentTopOffset
+                this.scanLine = scanLine
+                this.scanCorner = scanCorner
+                this.scanBackgroundColor = scanBackgroundColor
+                this.addOneDCode = addOneDCode
+                this.onlyOneDCode = onlyOneDCode
+                this.scanMustSquare = scanMustSquare
+                this.scanCornerSize = scanCornerSize
+                this.scanCornerThick = scanCornerThick
+                this.scanLineWidth = scanLineWidth
+                this.scanFrameLineWidth = scanFrameLineWidth
+                this.scanFrameLineColor = scanFrameLineColor
+                this.scanColor = scanColor
+                this.disableScale = disableScale
+                this.enableBeep = enableBeep
+                this.enableVibrate = enableVibrate
+                this.enableFlashlightBtn = enableFlashlightBtn
+            }
         }
+        return gLViewParameter
+    }
+
+    @Suppress("DEPRECATION")
+    fun initWithParameter(gLViewParameter: GLViewParameter) {
+        mScanMustSquare = gLViewParameter.scanMustSquare
+        mDisableScale = gLViewParameter.disableScale
+        if ((gLViewParameter.enableBeep || gLViewParameter.enableVibrate) && context is Activity) {
+            mBeepVibrateManager =
+                BeepVibrateManager(
+                    context as Activity,
+                    gLViewParameter.enableBeep,
+                    gLViewParameter.enableVibrate
+                )
+        }
+        if (gLViewParameter.addOneDCode || gLViewParameter.onlyOneDCode) {
+            mOneReader = MultiFormatOneDReader(null)
+        }
+        if (!gLViewParameter.onlyOneDCode) {
+            mQRReader = QRCodeReader()
+        }
+        scannerView.initWithAttribute(gLViewParameter)
+        flashlightInit(gLViewParameter.enableFlashlightBtn)
+        mScanTop = gLViewParameter.scanTopOffset
+        mScanWidth = gLViewParameter.scanWidth
+        mScanHeight = gLViewParameter.scanHeight
     }
 
     private fun initView(attrs: AttributeSet?) {
         View.inflate(context, R.layout.layout_gl_qr, this)
-        initAttribute(attrs)
+        val gLViewParameter = getParameterByAttribute(attrs)
+        initWithParameter(gLViewParameter)
         mGLCameraManager.init(context)
         glSurfaceView.holder.addCallback(object : SurfaceHolder.Callback {
 

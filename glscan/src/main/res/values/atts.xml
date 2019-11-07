@@ -9,7 +9,7 @@
         <attr name="scanPercentTopOffset" format="float" />
         <attr name="scanLine" format="reference" />
         <attr name="scanCorner" format="reference" />
-        <attr name="scanBackground" format="color" />
+        <attr name="scanBackgroundColor" format="color" />
         <attr name="addOneDCode" format="boolean" />
         <attr name="onlyOneDCode" format="boolean" />
         <attr name="scanMustSquare" format="boolean" />

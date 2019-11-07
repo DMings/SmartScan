@@ -6,7 +6,6 @@ import com.dming.smallScan.BuildConfig
 
 /**
  * 简单日志类，方便
- * Created by DMing on 2019/9/19.
  */
 
 class DLog {

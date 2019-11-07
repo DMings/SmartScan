@@ -34,7 +34,7 @@
         app:scanPercentTopOffset="0.2"
         app:scanPercentWidth="0.72"
         app:scanPercentHeight="0.6"
-        app:scanBackground="#00000000"
+        app:scanBackgroundColor="#00000000"
         app:enableFlashlightBtn="true"
         />
 

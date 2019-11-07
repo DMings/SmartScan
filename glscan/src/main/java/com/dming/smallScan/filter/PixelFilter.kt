@@ -9,6 +9,9 @@ import com.dming.smallScan.utils.ShaderHelper
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
+/**
+ * FBO数据绘制，用于读取其中的像素，里面的数据是亮度数据，可以拿来解码
+ */
 class PixelFilter(mContext: Context) : IShader {
 
     private var mIndexSB: ShortBuffer

@@ -1,5 +1,8 @@
 package com.dming.smallScan
 
+/**
+ * 摄像头尺寸BEAN类
+ */
 class CameraSize : Comparable<CameraSize> {
 
     val width: Int

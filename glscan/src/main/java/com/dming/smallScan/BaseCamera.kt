@@ -4,6 +4,9 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.sqrt
 
+/**
+ * camera基类
+ */
 open class BaseCamera {
 
     protected val mPreviewSizes: MutableList<CameraSize> = ArrayList()

@@ -2,18 +2,15 @@ package com.dming.smallScan
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.content.res.TypedArray
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.View
 
 
 /**
- * Created by DMing
+ * 扫描窗口的绘制view
  */
-
 class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
     View(context, attrs) {
     private lateinit var mBgPaint: Paint
@@ -41,50 +38,31 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     /**
      * 一些初始化操作
      */
-    fun initWithAttribute(typedArray: TypedArray) {
-        val oneDP = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, 1f,
-            this.resources.displayMetrics
-        )
-        mScanLineDrawable =
-            typedArray.getDrawable(R.styleable.GLScanView_scanLine)
-        mScanCornerDrawable =
-            typedArray.getDrawable(R.styleable.GLScanView_scanCorner)
+    fun initWithAttribute(gLViewParameter: GLViewParameter) {
+        mScanLineDrawable = gLViewParameter.scanLine
+        mScanCornerDrawable = gLViewParameter.scanCorner
         if (mScanCornerDrawable == null) { // 有扫描框图片用图片
             //角长度
-            mCornerSize =
-                typedArray.getDimension(R.styleable.GLScanView_scanCornerSize, 18 * oneDP).toInt()
+            mCornerSize = gLViewParameter.scanCornerSize.toInt()
             //角宽
-            mCornerThick =
-                typedArray.getDimension(R.styleable.GLScanView_scanCornerThick, 3 * oneDP).toInt()
+            mCornerThick = gLViewParameter.scanCornerThick.toInt()
         }
         // 扫描线尺寸
-        mScanLineSize =
-            typedArray.getDimension(R.styleable.GLScanView_scanLineWidth, 6 * oneDP).toInt()
+        mScanLineSize = gLViewParameter.scanLineWidth.toInt()
         // 扫描角和扫描框颜色
-        mScanColor = typedArray.getColor(
-            R.styleable.GLScanView_scanColor,
-            context.resources.getColor(R.color.smartScanColor)
-        )
+        mScanColor = gLViewParameter.scanColor
         // 框线宽
-        mFrameLineWidth =
-            typedArray.getDimension(R.styleable.GLScanView_scanFrameLineWidth, 0f).toInt()
+        mFrameLineWidth = gLViewParameter.scanFrameLineWidth.toInt()
         // 背景色和框线
-        val scanBackground = typedArray.getColor(
-            R.styleable.GLScanView_scanBackground,
-            context.resources.getColor(R.color.smartScanBackground)
-        )
-        val scanFrameLineColor = typedArray.getColor(
-            R.styleable.GLScanView_scanFrameLineColor,
-            context.resources.getColor(R.color.smartScanBackground)
-        )
+        val scanBackgroundColor = gLViewParameter.scanBackgroundColor
+        val scanFrameLineColor = gLViewParameter.scanFrameLineColor
 
         mBgPaint = Paint()
         mCornerPaint = Paint()
         mLineFramePaint = Paint()
         mScanLinePaint = Paint()
 
-        mBgPaint.color = scanBackground
+        mBgPaint.color = scanBackgroundColor
         mBgPaint.isAntiAlias = true
 
         val cornerColor = mScanColor and 0x00FFFFFF or 0xFF000000.toInt()

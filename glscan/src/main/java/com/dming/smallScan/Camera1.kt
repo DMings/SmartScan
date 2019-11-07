@@ -8,6 +8,9 @@ import android.view.WindowManager
 import com.dming.smallScan.utils.DLog
 
 
+/**
+ * 使用弃用的camera1作为摄像头的控制
+ */
 @Suppress("DEPRECATION")
 class Camera1 : BaseCamera(), ICamera {
     private var mCameraId: Int = 0
