@@ -13,16 +13,15 @@ import android.view.View
  */
 class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
     View(context, attrs) {
-    private lateinit var mBgPaint: Paint
-    private lateinit var mCornerPaint: Paint
-    private lateinit var mLineFramePaint: Paint
-    private lateinit var mScanLinePaint: Paint
+    private val mBgPaint = Paint()
+    private val mCornerPaint = Paint()
+    private val mLineFramePaint = Paint()
+    private val mScanLinePaint = Paint()
 
     private var mCornerSize: Int = 0
     private var mCornerThick: Int = 0
     private var mFrameLineWidth: Int = 0
     private var mScanLineSize: Int = 0
-    private var mScanColor: Int = 0
 
     private var mScannerRect: Rect? = null
     private var mScannerLineRect: RectF? = null
@@ -35,48 +34,37 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private var mScanLineDrawable: Drawable? = null
     private var mScanCornerDrawable: Drawable? = null
 
-    /**
-     * 一些初始化操作
-     */
-    fun initWithParameter(gLViewParameter: GLViewParameter) {
-        mScanLineDrawable = gLViewParameter.scanLine
-        mScanCornerDrawable = gLViewParameter.scanCorner
-        if (mScanCornerDrawable == null) { // 有扫描框图片用图片
-            //角长度
-            mCornerSize = gLViewParameter.scanCornerSize.toInt()
-            //角宽
-            mCornerThick = gLViewParameter.scanCornerThick.toInt()
-        }
-        // 扫描线尺寸
-        mScanLineSize = gLViewParameter.scanLineWidth.toInt()
-        // 扫描角和扫描框颜色
-        mScanColor = gLViewParameter.scanColor
-        // 框线宽
-        mFrameLineWidth = gLViewParameter.scanFrameLineWidth.toInt()
-        // 背景色和框线
-        val scanBackgroundColor = gLViewParameter.scanBackgroundColor
-        val scanFrameLineColor = gLViewParameter.scanFrameLineColor
-
-        mBgPaint = Paint()
-        mCornerPaint = Paint()
-        mLineFramePaint = Paint()
-        mScanLinePaint = Paint()
-
-        mBgPaint.color = scanBackgroundColor
+    init {
         mBgPaint.isAntiAlias = true
-
-        val cornerColor = mScanColor and 0x00FFFFFF or 0xFF000000.toInt()
         mCornerPaint.isAntiAlias = true
-        mCornerPaint.color = cornerColor
-
         mLineFramePaint.isAntiAlias = true
-        mLineFramePaint.color = scanFrameLineColor
-
         mScanLinePaint.isAntiAlias = true
-
     }
 
-    fun changeScanConfigure(scannerRect: Rect) {
+    fun changeScanConfigure(glScanParameter: GLScanParameter, scannerRect: Rect) {
+        mScanLineDrawable = glScanParameter.scanLine
+        mScanCornerDrawable = glScanParameter.scanCorner
+        if (mScanCornerDrawable == null) { // 有扫描框图片用图片
+            //角长度
+            mCornerSize = glScanParameter.scanCornerSize.toInt()
+            //角宽
+            mCornerThick = glScanParameter.scanCornerThick.toInt()
+        }
+        // 扫描线尺寸
+        mScanLineSize = glScanParameter.scanLineWidth.toInt()
+        // 框线宽
+        mFrameLineWidth = glScanParameter.scanFrameLineWidth.toInt()
+        // 背景色和框线
+        mBgPaint.color = glScanParameter.scanBackgroundColor ?: 0
+        mLineFramePaint.color = glScanParameter.scanFrameLineColor ?: 0
+
+        // 扫描框颜色
+        val cornerColor = if (glScanParameter.scanCornerColor != 0)
+            glScanParameter.scanCornerColor!! and 0x00FFFFFF or 0xFF000000.toInt()
+        else
+            0
+        mCornerPaint.color = cornerColor
+
         mScannerRect = scannerRect
         mScannerRect?.let { rect ->
             val ovalRect = RectF(
@@ -85,8 +73,14 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
                 scannerRect.width().toFloat(),
                 mScanLineSize.toFloat()
             )
-            val statColor = mScanColor and 0x00FFFFFF or 0xAA000000.toInt()
-            val endColor = mScanColor and 0x00FFFFFF or 0x10000000
+            val statColor = if (glScanParameter.scanLineColor != 0)
+                glScanParameter.scanLineColor!! and 0x00FFFFFF or 0xAA000000.toInt()
+            else
+                0
+            val endColor = if (glScanParameter.scanLineColor != 0)
+                glScanParameter.scanLineColor!! and 0x00FFFFFF or 0x10000000
+            else
+                0
             val linearGradient = LinearGradient(
                 ovalRect.left,
                 ovalRect.bottom,

@@ -174,14 +174,9 @@ class GLCameraManager {
         }
     }
 
-    fun changeScanConfigure(
-        t: Float,
-        ws: Float,
-        hs: Float,
-        scanMustSquare: Boolean
-    ) {
+    fun changeScanConfigure(glScanParameter: GLScanParameter) {
         mPixelHandler.post {
-            mPixelHandler.setConfigure(t, ws, hs, mWidth, mHeight, scanMustSquare)
+            mPixelHandler.setConfigure(glScanParameter, mWidth, mHeight)
         }
     }
 

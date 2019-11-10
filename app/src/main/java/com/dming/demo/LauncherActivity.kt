@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import com.dming.demo.CameraActivity
 
 class LauncherActivity : AppCompatActivity() {
 
@@ -20,7 +19,7 @@ class LauncherActivity : AppCompatActivity() {
         ) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 666)
         } else {
-            startActivity(Intent(this, CreateViewActivity::class.java))
+            startActivity(Intent(this, ScanMainActivity::class.java))
             finish()
         }
     }
@@ -32,7 +31,7 @@ class LauncherActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 666 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startActivity(Intent(this, CameraActivity::class.java))
+            startActivity(Intent(this, ScanMainActivity::class.java))
             finish()
         }
     }

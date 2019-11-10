@@ -17,15 +17,12 @@ class PixelHandler(looper: Looper) : Handler(looper) {
     var height: Int = 0
 
     fun setConfigure(
-        t: Float,
-        ws: Float,
-        hs: Float,
+        glScanParameter: GLScanParameter,
         maxWidth: Int,
-        maxHeight: Int,
-        scanMustSquare: Boolean
+        maxHeight: Int
     ) {
         val viewConfigure =
-            ScanLayoutLocation.getViewConfigure(t, ws, hs, maxWidth, maxHeight, scanMustSquare)
+            ScanViewLocation.getViewConfigure(glScanParameter, maxWidth, maxHeight)
         this.left = viewConfigure.left
         this.top = viewConfigure.top
         this.width = viewConfigure.width()

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.dming.demo.TestActivity">
+
+    <!--    app:scanBackground="@color/scanBackground"-->
+    <!--    app:scanLine="@drawable/smart_scan_line"-->
+    <!--    app:scanCorner="@drawable/smart_scan_corner_bg"-->
+    <!--    app:scanFrameLineColor="#999"-->
+    <!--    app:scanFrameLineWidth="1px"-->
+    <!--    app:scanCorner="@drawable/smart_scan_corner_bg"-->
+    <!--    app:scanLine="@drawable/smart_scan_line"-->
+    <!--    app:scanMustSquare="true"-->
+    <!--    app:scanPercentTopOffset="0.2"-->
+    <!--    app:enableBeep="true"-->
+    <!--    app:enableVibrate="false"-->
+    <!--    app:enableFlashlightBtn="true"-->
+    <!--    app:scanFrameLineWidth="0px"-->
+    <!--    app:scanCornerSize="0dp"-->
+    <!--    app:scanCornerThick="0dp"-->
+    <!--    app:scanLineWidth="0dp"-->
+
+    <com.dming.smallScan.GLScanView
+        android:id="@+id/glScanView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:scanMustSquare="true"
+        app:scanPercentHeight="0.6"
+        app:scanPercentTopOffset="0.2"
+        app:scanPercentWidth="0.72"
+        app:scanBackgroundColor="#00000000"
+        app:scanLineColor="#00000000"
+        app:scanCornerColor="#00000000"
+        />
+
+    <View
+        android:id="@+id/v_test"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#33ff0000" />
+
+    <ImageView
+        android:id="@+id/testImg"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_gravity="bottom" />
+
+</FrameLayout>

@@ -18,7 +18,8 @@
         <attr name="scanLineWidth" format="dimension" />
         <attr name="scanFrameLineWidth" format="dimension" />
         <attr name="scanFrameLineColor" format="color" />
-        <attr name="scanColor" format="color" />
+        <attr name="scanLineColor" format="color" />
+        <attr name="scanCornerColor" format="color" />
         <attr name="disableScale" format="boolean" />
         <attr name="enableBeep" format="boolean" />
         <attr name="enableVibrate" format="boolean" />

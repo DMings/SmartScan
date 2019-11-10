@@ -5,21 +5,25 @@ import android.graphics.Rect
 /**
  * 扫描view的窗口定位计算
  */
-class ScanLayoutLocation {
+class ScanViewLocation {
 
     companion object {
         fun getViewConfigure(
-            t: Float,
-            ws: Float,
-            hs: Float,
+            glScanParameter: GLScanParameter,
             maxWidth: Int,
-            maxHeight: Int,
-            scanMustSquare: Boolean
+            maxHeight: Int
         ): Rect {
             val left: Int
             val top: Int
             var height: Int
             var width: Int
+            val ts = if (glScanParameter.scanTopOffset > 0) glScanParameter.scanTopOffset else
+                glScanParameter.scanPercentTopOffset
+            val ws = if (glScanParameter.scanWidth > 0) glScanParameter.scanWidth else
+                glScanParameter.scanPercentWidth
+            val hs = if (glScanParameter.scanHeight > 0) glScanParameter.scanHeight else
+                glScanParameter.scanPercentHeight
+
             val ww = if (ws == 0f) {
                 maxWidth
             } else {
@@ -30,10 +34,10 @@ class ScanLayoutLocation {
             } else {
                 (if (hs <= 1) maxHeight * hs else hs).toInt()
             }
-            val tt = if (t <= 1) maxHeight * t else t
+            val tt = if (ts <= 1) maxHeight * ts else ts
             width = if (ww > maxWidth) maxWidth else ww
             height = if (hh > maxHeight) maxHeight else hh
-            if (scanMustSquare) { // 用最小的边
+            if (glScanParameter.scanMustSquare) { // 用最小的边
                 if (width > height) {
                     width = height
                 } else {

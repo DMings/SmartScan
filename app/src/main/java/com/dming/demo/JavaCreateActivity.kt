@@ -2,31 +2,37 @@ package com.dming.demo
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.Toast
+import com.dming.smallScan.GLScanParameter
 import com.dming.smallScan.GLScanView
-import com.dming.smallScan.GLViewParameter
+import es.dmoral.toasty.Toasty
 
-class CreateViewActivity : AppCompatActivity() {
+class JavaCreateActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val framelayout = FrameLayout(this)
+        val flayout = FrameLayout(this)
         val params = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        framelayout.layoutParams = params
-        setContentView(framelayout)
+        flayout.layoutParams = params
+        setContentView(flayout)
         val glScanView = GLScanView(this)
-        framelayout.addView(glScanView)
-        val gLViewParameter = GLViewParameter()
+        flayout.addView(glScanView)
 
-        val oneDP = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, 1f,
-            this.resources.displayMetrics
-        )
+        glScanView.setOnResultListener {
+            Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
+        }
+
+        val gLViewParameter = GLScanParameter()
+
+//        val oneDP = TypedValue.applyDimension(
+//            TypedValue.COMPLEX_UNIT_DIP, 1f,
+//            this.resources.displayMetrics
+//        )
 
         gLViewParameter.apply {
 //            this.scanWidth = scanWidth
@@ -37,22 +43,23 @@ class CreateViewActivity : AppCompatActivity() {
             this.scanPercentTopOffset = 0.2f
 //            this.scanLine = scanLine
 //            this.scanCorner = scanCorner
-            this.scanBackgroundColor = 0x33000000
+//            this.scanBackgroundColor = 0x33000000
 //            this.addOneDCode = addOneDCode
 //            this.onlyOneDCode = onlyOneDCode
             this.scanMustSquare = true
-            this.scanCornerSize = 18 * oneDP
-            this.scanCornerThick = 3 * oneDP
-            this.scanLineWidth = 6 * oneDP
+//            this.scanCornerSize = 18 * oneDP
+//            this.scanCornerThick = 3 * oneDP
+//            this.scanLineWidth = 6 * oneDP
 //            this.scanFrameLineWidth = scanFrameLineWidth
 //            this.scanFrameLineColor = scanFrameLineColor
-            this.scanColor = 0xFF00ff00.toInt()
+//            this.scanColor = 0xFF00ff00.toInt()
 //            this.disableScale = disableScale
 //            this.enableBeep = enableBeep
 //            this.enableVibrate = enableVibrate
             this.enableFlashlightBtn = true
+            this.scanCorner = resources.getDrawable(R.drawable.smart_scan_corner_bg)
         }
-        glScanView.initWithParameter(gLViewParameter)
+        glScanView.init(gLViewParameter)
     }
 
 }
