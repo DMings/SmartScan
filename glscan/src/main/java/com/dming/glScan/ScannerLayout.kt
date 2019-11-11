@@ -1,15 +1,15 @@
-package com.dming.smallScan
+package com.dming.glScan
 
 import android.graphics.Rect
 
 /**
  * 扫描view的窗口定位计算
  */
-class ScanViewLocation {
+class ScannerLayout {
 
     companion object {
         fun getViewConfigure(
-            glScanParameter: GLScanParameter,
+            smartScanParameter: SmartScanParameter,
             maxWidth: Int,
             maxHeight: Int
         ): Rect {
@@ -17,12 +17,12 @@ class ScanViewLocation {
             val top: Int
             var height: Int
             var width: Int
-            val ts = if (glScanParameter.scanTopOffset > 0) glScanParameter.scanTopOffset else
-                glScanParameter.scanPercentTopOffset
-            val ws = if (glScanParameter.scanWidth > 0) glScanParameter.scanWidth else
-                glScanParameter.scanPercentWidth
-            val hs = if (glScanParameter.scanHeight > 0) glScanParameter.scanHeight else
-                glScanParameter.scanPercentHeight
+            val ts = if (smartScanParameter.scanTopOffset > 0) smartScanParameter.scanTopOffset else
+                smartScanParameter.scanPercentTopOffset
+            val ws = if (smartScanParameter.scanWidth > 0) smartScanParameter.scanWidth else
+                smartScanParameter.scanPercentWidth
+            val hs = if (smartScanParameter.scanHeight > 0) smartScanParameter.scanHeight else
+                smartScanParameter.scanPercentHeight
 
             val ww = if (ws == 0f) {
                 maxWidth
@@ -37,7 +37,7 @@ class ScanViewLocation {
             val tt = if (ts <= 1) maxHeight * ts else ts
             width = if (ww > maxWidth) maxWidth else ww
             height = if (hh > maxHeight) maxHeight else hh
-            if (glScanParameter.scanMustSquare) { // 用最小的边
+            if (smartScanParameter.scanMustSquare) { // 用最小的边
                 if (width > height) {
                     width = height
                 } else {

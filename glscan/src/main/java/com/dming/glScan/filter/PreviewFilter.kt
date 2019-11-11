@@ -1,7 +1,7 @@
-package com.dming.smallScan.filter
+package com.dming.glScan.filter
 
 import android.content.Context
-import com.dming.smallScan.R
+import com.dming.glScan.R
 
 /**
  * 绘制摄像头数据预览

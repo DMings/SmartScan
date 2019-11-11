@@ -1,4 +1,4 @@
-package com.dming.smallScan
+package com.dming.glScan
 
 import android.app.Activity
 import android.content.Context
@@ -9,7 +9,9 @@ import android.view.ScaleGestureDetector
 import android.view.SurfaceHolder
 import android.view.View
 import android.widget.FrameLayout
-import com.dming.smallScan.utils.DLog
+import com.dming.glScan.camera.GLCameraManager
+import com.dming.glScan.utils.DLog
+import com.dming.glScan.zxing.GLRGBLuminanceSource
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.ReaderException
 import com.google.zxing.Result
@@ -22,10 +24,9 @@ import java.nio.ByteBuffer
 /**
  * 扫码View核心类
  */
-@Suppress("UNUSED")
-class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
+class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
 
-    private var mGLScanParameter = GLScanParameter()
+    private var mGLScanParameter = SmartScanParameter()
     private val mGLCameraManager = GLCameraManager()
     private var mViewWidth: Int = 0
     private var mViewHeight: Int = 0
@@ -57,8 +58,11 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
     }
 
-    private fun setDefaultParameter(glScanParameter: GLScanParameter) {
-        mGLScanParameter = glScanParameter
+    /**
+     * 设置默认（缺失）参数
+     */
+    private fun setDefaultParameter(smartScanParameter: SmartScanParameter) {
+        mGLScanParameter = smartScanParameter
         val oneDP = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, 1f,
             this.resources.displayMetrics
@@ -93,58 +97,61 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
     }
 
+    /**
+     * 当在xml创建的时候获取attribute中属性
+     */
     private fun handleAttribute(attrs: AttributeSet?) {
         attrs?.let {
-            val typedArray = context.obtainStyledAttributes(it, R.styleable.GLScanView)
-            val scanPercentWidth = typedArray.getFloat(R.styleable.GLScanView_scanPercentWidth, 0f)
-            val scanWidth = typedArray.getDimension(R.styleable.GLScanView_scanWidth, 0f)
+            val typedArray = context.obtainStyledAttributes(it, R.styleable.SmartScanView)
+            val scanPercentWidth = typedArray.getFloat(R.styleable.SmartScanView_scanPercentWidth, 0f)
+            val scanWidth = typedArray.getDimension(R.styleable.SmartScanView_scanWidth, 0f)
             val scanPercentHeight =
-                typedArray.getFloat(R.styleable.GLScanView_scanPercentHeight, 0f)
-            val scanHeight = typedArray.getDimension(R.styleable.GLScanView_scanHeight, 0f)
+                typedArray.getFloat(R.styleable.SmartScanView_scanPercentHeight, 0f)
+            val scanHeight = typedArray.getDimension(R.styleable.SmartScanView_scanHeight, 0f)
             val scanPercentTopOffset =
-                typedArray.getFloat(R.styleable.GLScanView_scanPercentTopOffset, 0f)
-            val scanTopOffset = typedArray.getDimension(R.styleable.GLScanView_scanTopOffset, 0f)
-            val scanMustSquare = typedArray.getBoolean(R.styleable.GLScanView_scanMustSquare, true)
+                typedArray.getFloat(R.styleable.SmartScanView_scanPercentTopOffset, 0f)
+            val scanTopOffset = typedArray.getDimension(R.styleable.SmartScanView_scanTopOffset, 0f)
+            val scanMustSquare = typedArray.getBoolean(R.styleable.SmartScanView_scanMustSquare, true)
 
             val enableFlashlightBtn =
-                typedArray.getBoolean(R.styleable.GLScanView_enableFlashlightBtn, false)
-            val disableScale = typedArray.getBoolean(R.styleable.GLScanView_disableScale, false)
+                typedArray.getBoolean(R.styleable.SmartScanView_enableFlashlightBtn, false)
+            val disableScale = typedArray.getBoolean(R.styleable.SmartScanView_disableScale, false)
 
-            val enableBeep = typedArray.getBoolean(R.styleable.GLScanView_enableBeep, false)
-            val enableVibrate = typedArray.getBoolean(R.styleable.GLScanView_enableVibrate, false)
+            val enableBeep = typedArray.getBoolean(R.styleable.SmartScanView_enableBeep, false)
+            val enableVibrate = typedArray.getBoolean(R.styleable.SmartScanView_enableVibrate, false)
 
-            val addOneDCode = typedArray.getBoolean(R.styleable.GLScanView_addOneDCode, false)
-            val onlyOneDCode = typedArray.getBoolean(R.styleable.GLScanView_onlyOneDCode, false)
+            val addOneDCode = typedArray.getBoolean(R.styleable.SmartScanView_addOneDCode, false)
+            val onlyOneDCode = typedArray.getBoolean(R.styleable.SmartScanView_onlyOneDCode, false)
 
             val scanLine =
-                typedArray.getDrawable(R.styleable.GLScanView_scanLine)
+                typedArray.getDrawable(R.styleable.SmartScanView_scanLine)
             val scanCorner =
-                typedArray.getDrawable(R.styleable.GLScanView_scanCorner)
+                typedArray.getDrawable(R.styleable.SmartScanView_scanCorner)
             var scanCornerSize = 0f
             var scanCornerThick = 0f
             if (scanCorner == null) { // 有扫描框图片用图片
                 //角长度
                 scanCornerSize =
-                    typedArray.getDimension(R.styleable.GLScanView_scanCornerSize, 0f)
+                    typedArray.getDimension(R.styleable.SmartScanView_scanCornerSize, 0f)
                 //角宽
                 scanCornerThick =
-                    typedArray.getDimension(R.styleable.GLScanView_scanCornerThick, 0f)
+                    typedArray.getDimension(R.styleable.SmartScanView_scanCornerThick, 0f)
             }
             // 扫描线尺寸
             val scanLineWidth =
-                typedArray.getDimension(R.styleable.GLScanView_scanLineWidth, 0f)
+                typedArray.getDimension(R.styleable.SmartScanView_scanLineWidth, 0f)
             // 扫描角和扫描框颜色
-            val scanLineColor = typedArray.getColor(R.styleable.GLScanView_scanLineColor,0)
-            val scanCornerColor = typedArray.getColor(R.styleable.GLScanView_scanCornerColor,0)
+            val scanLineColor = typedArray.getColor(R.styleable.SmartScanView_scanLineColor,0)
+            val scanCornerColor = typedArray.getColor(R.styleable.SmartScanView_scanCornerColor,0)
             // 框线宽
             val scanFrameLineWidth =
-                typedArray.getDimension(R.styleable.GLScanView_scanFrameLineWidth, 0f)
+                typedArray.getDimension(R.styleable.SmartScanView_scanFrameLineWidth, 0f)
             // 背景色和框线
             val scanBackgroundColor = typedArray.getColor(
-                R.styleable.GLScanView_scanBackgroundColor, 0
+                R.styleable.SmartScanView_scanBackgroundColor, 0
             )
             val scanFrameLineColor = typedArray.getColor(
-                R.styleable.GLScanView_scanFrameLineColor, 0
+                R.styleable.SmartScanView_scanFrameLineColor, 0
             )
             typedArray.recycle()
             mGLScanParameter.apply {
@@ -175,12 +182,18 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
     }
 
-    fun init(glScanParameter: GLScanParameter) {
-        setDefaultParameter(glScanParameter)
+    /**
+     * 传入属性进行初始化
+     */
+    fun init(smartScanParameter: SmartScanParameter) {
+        setDefaultParameter(smartScanParameter)
         initView()
         initEvent()
     }
 
+    /**
+     * 初始化view部分
+     */
     private fun initView() {
         View.inflate(context, R.layout.layout_gl_qr, this)
         mGLCameraManager.init(context)
@@ -217,8 +230,11 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         })
     }
 
+    /**
+     * 初始化事件部分
+     */
     private fun initEvent() {
-        mGLCameraManager.setParseQRListener { width: Int, height: Int, source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer ->
+        mGLCameraManager.setOnReadScanDateListener { width: Int, height: Int, source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer ->
             if (this.mOnGrayImg != null) {
                 this.mOnGrayImg!!(width, height, grayByteBuffer)
             }
@@ -263,6 +279,9 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
     }
 
+    /**
+     * 解码二值化的图像
+     */
     private fun decodeBinaryBitmap(binaryBitmap: BinaryBitmap): Result? {
         try {
             val result = mQRReader?.decode(binaryBitmap)
@@ -287,8 +306,11 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         return null
     }
 
+    /**
+     * 改变扫码view的配置
+     */
     private fun changeScanConfigure() {
-        val viewConfigure = ScanViewLocation.getViewConfigure(
+        val viewConfigure = ScannerLayout.getViewConfigure(
             mGLScanParameter,
             mViewWidth,
             mViewHeight
@@ -317,7 +339,9 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         return true
     }
 
-    @Suppress("unused")
+    /**
+     * 设置获取亮度（灰度）图片监听
+     */
     fun setGrayImgListener(
         mOnGrayImg: (
             width: Int, height: Int, grayByteBuffer: ByteBuffer
@@ -326,43 +350,69 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         this.mOnGrayImg = mOnGrayImg
     }
 
+    /**
+     * 从解码线程中监听解码结果，会不断的触发，可使用stopDecode()关闭
+     */
     fun setOnResultInThreadListener(mOnResult: (text: String) -> Unit) {
         this.mOnDecodeThreadResult = mOnResult
         this.mDecodeOnce = false
     }
 
+    /**
+     * 从解码线程中监听解码结果，成功后会停止，可使用startDecode()开启
+     */
     fun setOnResultOnceInThreadListener(mOnResult: (text: String) -> Unit) {
         this.mOnDecodeThreadResult = mOnResult
         this.mDecodeOnce = true
     }
 
+    /**
+     * 从UI线程中监听解码结果，会不断的触发，可使用stopDecode()关闭
+     */
     fun setOnResultListener(mOnResult: (text: String) -> Unit) {
         this.mOnUIThreadResult = mOnResult
         this.mDecodeOnce = false
     }
 
+    /**
+     * 从UI线程中监听解码结果，成功后会停止，可使用startDecode()开启
+     */
     fun setOnResultOnceListener(mOnResult: (text: String) -> Unit) {
         this.mOnUIThreadResult = mOnResult
         this.mDecodeOnce = true
     }
 
+    /**
+     * 开启解码
+     */
     fun startDecode() {
         mCanDecode = true
     }
 
+    /**
+     * 关闭解码
+     */
     fun stopDecode() {
         mCanDecode = false
     }
 
-    fun setCornerLocationListener(onScanViewListener: OnScanViewListener) {
+    /**
+     * 监听smart的扫码窗口改变，自定义窗口极奇重要的监听
+     */
+    fun setScanViewChangeListener(onScanViewListener: OnScanViewListener) {
         this.mOnScanViewListener = onScanViewListener
     }
 
-    @Suppress("unused")
+    /**
+     * 控制闪光灯开启关闭
+     */
     fun setFlashLight(on: Boolean): Boolean {
         return mGLCameraManager.setFlashLight(on)
     }
 
+    /**
+     * 初始化内部的闪光灯按钮大小、位置
+     */
     private fun initFlashlight() {
         mFlashLightBtnSize = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, 50f,
@@ -389,6 +439,9 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
     }
 
+    /**
+     * 更新闪光灯显示与否
+     */
     private fun updateFlashlight(enableFlashlightBtn: Boolean) {
         if (enableFlashlightBtn) {
             btn_flash.visibility = View.VISIBLE
@@ -397,6 +450,9 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
     }
 
+    /**
+     * 更新闪光灯位置
+     */
     private fun onFlashlightLayoutChange(rect: Rect) {
         if (mFlashLightBtnSize > 0) {
             val x = (rect.left + rect.width() / 2).toFloat()
@@ -405,40 +461,49 @@ class GLScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
     }
 
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        mGLCameraManager.destroy()
-        mBeepVibrateManager?.close()
-    }
-
-    fun updateConfigure(glScanParameter: GLScanParameter) {
-        setDefaultParameter(glScanParameter)
+    /**
+     * 改变smartScanView的配置，如窗口大小，解码配置等等等
+     */
+    fun updateConfigure(smartScanParameter: SmartScanParameter) {
+        setDefaultParameter(smartScanParameter)
         changeScanConfigure()
-        mOneReader = if (glScanParameter.addOneDCode || glScanParameter.onlyOneDCode) {
+        mOneReader = if (smartScanParameter.addOneDCode || smartScanParameter.onlyOneDCode) {
             MultiFormatOneDReader(null)
         } else {
             null
         }
-        mQRReader = if (!glScanParameter.onlyOneDCode) {
+        mQRReader = if (!smartScanParameter.onlyOneDCode) {
             QRCodeReader()
         } else {
             null
         }
-        updateFlashlight(glScanParameter.enableFlashlightBtn)
-        if ((glScanParameter.enableBeep || glScanParameter.enableVibrate) && context is Activity) {
+        updateFlashlight(smartScanParameter.enableFlashlightBtn)
+        if ((smartScanParameter.enableBeep || smartScanParameter.enableVibrate) && context is Activity) {
             mBeepVibrateManager =
                 BeepVibrateManager(
                     context as Activity
                 )
         }
         mBeepVibrateManager?.updateConfigure(
-            glScanParameter.enableBeep,
-            glScanParameter.enableVibrate
+            smartScanParameter.enableBeep,
+            smartScanParameter.enableVibrate
         )
     }
 
-    fun getGLScanParameter(): GLScanParameter {
+    /**
+     * 获取现在的配置，一般结合updateConfigure(smartScanParameter: SmartScanParameter) 使用
+     */
+    fun getGLScanParameter(): SmartScanParameter {
         return mGLScanParameter
+    }
+
+    /**
+     * view被移除的资源释放
+     */
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        mGLCameraManager.destroy()
+        mBeepVibrateManager?.close()
     }
 
 }

@@ -5,8 +5,8 @@ import android.support.v7.app.AppCompatActivity
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
-import com.dming.smallScan.GLScanParameter
-import com.dming.smallScan.GLScanView
+import com.dming.glScan.SmartScanParameter
+import com.dming.glScan.SmartScanView
 import es.dmoral.toasty.Toasty
 
 class JavaCreateActivity : AppCompatActivity() {
@@ -20,14 +20,14 @@ class JavaCreateActivity : AppCompatActivity() {
         )
         flayout.layoutParams = params
         setContentView(flayout)
-        val glScanView = GLScanView(this)
+        val glScanView = SmartScanView(this)
         flayout.addView(glScanView)
 
         glScanView.setOnResultListener {
             Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
         }
 
-        val gLViewParameter = GLScanParameter()
+        val gLViewParameter = SmartScanParameter()
 
 //        val oneDP = TypedValue.applyDimension(
 //            TypedValue.COMPLEX_UNIT_DIP, 1f,

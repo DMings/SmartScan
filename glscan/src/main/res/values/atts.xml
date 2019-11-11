@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="GLScanView">
+    <declare-styleable name="SmartScanView">
         <attr name="scanWidth" format="dimension" />
         <attr name="scanHeight" format="dimension" />
         <attr name="scanPercentWidth" format="float" />

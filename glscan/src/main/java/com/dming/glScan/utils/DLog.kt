@@ -1,7 +1,7 @@
-package com.dming.smallScan.utils
+package com.dming.glScan.utils
 
 import android.util.Log
-import com.dming.smallScan.BuildConfig
+import com.dming.glScan.BuildConfig
 
 
 /**

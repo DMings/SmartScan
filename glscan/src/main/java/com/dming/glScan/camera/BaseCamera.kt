@@ -1,4 +1,4 @@
-package com.dming.smallScan
+package com.dming.glScan.camera
 
 import java.util.*
 import kotlin.math.abs
@@ -10,10 +10,14 @@ import kotlin.math.sqrt
 open class BaseCamera {
 
     protected val mPreviewSizes: MutableList<CameraSize> = ArrayList()
-    protected var viewWidth: Int = 0
-    protected var viewHeight: Int = 0
-    protected var mCameraSize: CameraSize = CameraSize(0,0)
+    protected var mViewWidth: Int = 0
+    protected var mViewHeight: Int = 0
+    protected var mCameraSize: CameraSize =
+        CameraSize(0, 0)
 
+    /**
+     * 根据旋转角度，找到最合适的尺寸，这里在匹配角度情况下，采用各边长差值绝对值的平方和方式获取
+     */
     protected fun dealCameraSize(width: Int, height: Int, rotation: Int) {
         val lessThanView = ArrayList<CameraSize>()
 //        DLog.i("dealCameraSize width>  $width height>> $height rotation: $rotation")
@@ -26,11 +30,11 @@ open class BaseCamera {
             }
         }
         var cSize: CameraSize? = null
-        var diffMinValue = Float.MAX_VALUE
+        var diffMinValue = Int.MAX_VALUE
         for (size in lessThanView) {
-            val diffWidth = abs(width - size.width)
-            val diffHeight = abs(height - size.height)
-            val diffValue = sqrt(0.0f + diffWidth * diffWidth + diffHeight * diffHeight)
+            val diffWidth = abs(width - size.width) // 差值绝对值
+            val diffHeight = abs(height - size.height) // 差值绝对值
+            val diffValue = diffWidth * diffWidth + diffHeight * diffHeight // 平方和
             if (diffValue < diffMinValue) {  // 找出差值最小的数
                 diffMinValue = diffValue
                 cSize = size

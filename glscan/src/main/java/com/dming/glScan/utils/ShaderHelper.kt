@@ -1,4 +1,4 @@
-package com.dming.smallScan.utils
+package com.dming.glScan.utils
 
 import android.content.Context
 import android.opengl.GLES20

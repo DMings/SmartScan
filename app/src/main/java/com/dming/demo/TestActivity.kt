@@ -5,7 +5,7 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
-import com.dming.smallScan.OnScanViewListener
+import com.dming.glScan.OnScanViewListener
 import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.activity_full_screen.*
 
@@ -21,7 +21,7 @@ class TestActivity : AppCompatActivity() {
             Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
         }
         v_test.setOnClickListener { glScanView.startDecode() }
-        glScanView.setCornerLocationListener(object : OnScanViewListener {
+        glScanView.setScanViewChangeListener(object : OnScanViewListener {
             override fun onCreate() {
 
             }

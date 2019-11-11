@@ -1,4 +1,4 @@
-package com.dming.smallScan
+package com.dming.glScan.camera
 
 /**
  * 摄像头尺寸BEAN类
@@ -15,6 +15,9 @@ class CameraSize : Comparable<CameraSize> {
     }
 
 
+    /**
+     * srcSize 记录原始的尺寸，为设置语言不混乱做准备
+     */
     constructor(size1: Int, size2: Int, srcSize: CameraSize) {
         this.width = size1
         this.height = size2

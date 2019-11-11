@@ -1,4 +1,4 @@
-package com.dming.smallScan;
+package com.dming.glScan.filter;
 
 /**
  * GL的着色器必须实现

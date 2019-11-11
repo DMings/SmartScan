@@ -1,4 +1,4 @@
-package com.dming.smallScan.utils
+package com.dming.glScan.utils
 
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
@@ -10,6 +10,9 @@ import javax.microedition.khronos.opengles.GL10
  */
 object FGLUtils {
 
+    /**
+     * 创建FBO
+     */
     fun createFBO(width: Int, height: Int): IntArray? {
         val mFrameBuffer = IntArray(1)
         val mFrameBufferTexture = IntArray(1)
@@ -50,11 +53,17 @@ object FGLUtils {
         return intArrayOf(mFrameBuffer[0], mFrameBufferTexture[0])
     }
 
+    /**
+     * 删除FBO
+     */
     fun deleteFBO(ids: IntArray) {
         GLES20.glDeleteFramebuffers(1, intArrayOf(ids[0]), 0)
         GLES20.glDeleteTextures(1, intArrayOf(ids[1]), 0)
     }
 
+    /**
+     * 创建OES纹理
+     */
     fun createOESTexture(): Int {
         val tex = IntArray(1)
         //生成一个纹理
@@ -83,6 +92,9 @@ object FGLUtils {
         return tex[0]
     }
 
+    /**
+     * 创建普通纹理
+     */
     fun createTexture(): Int {
         val tex = IntArray(1)
         GLES20.glGenTextures(1, tex, 0)
@@ -107,15 +119,24 @@ object FGLUtils {
         return tex[0]
     }
 
+    /**
+     * 删除纹理
+     */
     fun deleteTexture(textureId: Int) {
         GLES20.glDeleteTextures(1, intArrayOf(textureId), 0)
     }
 
+    /**
+     * 检测错误，一般用于debug
+     */
     fun glCheckErr() {
         val err = GLES20.glGetError()
         DLog.i("checkErr: $err")
     }
 
+    /**
+     * 检测错误，一般用于debug
+     */
     fun glCheckErr(tag: String) {
         val err = GLES20.glGetError()
         if (err != 0) {
@@ -123,6 +144,9 @@ object FGLUtils {
         }
     }
 
+    /**
+     * 检测错误，一般用于debug
+     */
     fun glCheckErr(tag: Int) {
         val err = GLES20.glGetError()
         DLog.i("$tag > checkErr: $err")

@@ -1,7 +1,7 @@
-package com.dming.smallScan.filter
+package com.dming.glScan.filter
 
 import android.content.Context
-import com.dming.smallScan.R
+import com.dming.glScan.R
 
 /**
  * 以亮度，黑白的形式绘制OES数据，为解码提前做准备

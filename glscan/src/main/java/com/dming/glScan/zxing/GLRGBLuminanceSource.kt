@@ -1,4 +1,4 @@
-package com.dming.smallScan
+package com.dming.glScan.zxing
 
 import com.google.zxing.LuminanceSource
 
@@ -9,14 +9,14 @@ import java.nio.ByteBuffer
  */
 class GLRGBLuminanceSource(width: Int, height: Int) : LuminanceSource(width, height) {
 
-    private var luminances: ByteArray? = null
-    private val dataWidth: Int = width
-    private val dataHeight: Int = height
-    private val left: Int = 0
-    private val top: Int = 0
+    private var mLuminance: ByteArray? = null
+    private val mDataWidth: Int = width
+    private val mDataHeight: Int = height
+    private val mLeft: Int = 0
+    private val mTop: Int = 0
 
     init {
-        luminances = ByteArray(width * height)
+        mLuminance = ByteArray(width * height)
     }
 
     fun setData(pixels: ByteBuffer) {
@@ -24,7 +24,7 @@ class GLRGBLuminanceSource(width: Int, height: Int) : LuminanceSource(width, hei
         val srcSize = width * height * 4
         var offset = 0
         while (offset < srcSize) {
-            luminances!![i++] = pixels.get(offset)
+            mLuminance!![i++] = pixels.get(offset)
             offset += 4
         }
     }
@@ -36,8 +36,8 @@ class GLRGBLuminanceSource(width: Int, height: Int) : LuminanceSource(width, hei
         if (row == null || row.size < width) {
             row = ByteArray(width)
         }
-        val offset = (y + top) * dataWidth + left
-        System.arraycopy(luminances!!, offset, row, 0, width)
+        val offset = (y + mTop) * mDataWidth + mLeft
+        System.arraycopy(mLuminance!!, offset, row, 0, width)
         return row
     }
 
@@ -47,25 +47,25 @@ class GLRGBLuminanceSource(width: Int, height: Int) : LuminanceSource(width, hei
 
         // If the caller asks for the entire underlying image, save the copy and give them the
         // original data. The docs specifically warn that result.length must be ignored.
-        if (width == dataWidth && height == dataHeight) {
-            return luminances!!
+        if (width == mDataWidth && height == mDataHeight) {
+            return mLuminance!!
         }
 
         val area = width * height
         val matrix = ByteArray(area)
-        var inputOffset = top * dataWidth + left
+        var inputOffset = mTop * mDataWidth + mLeft
 
         // If the width matches the full width of the underlying data, perform a single copy.
-        if (width == dataWidth) {
-            System.arraycopy(luminances!!, inputOffset, matrix, 0, area)
+        if (width == mDataWidth) {
+            System.arraycopy(mLuminance!!, inputOffset, matrix, 0, area)
             return matrix
         }
 
         // Otherwise copy one cropped row at a time.
         for (y in 0 until height) {
             val outputOffset = y * width
-            System.arraycopy(luminances!!, inputOffset, matrix, outputOffset, width)
-            inputOffset += dataWidth
+            System.arraycopy(mLuminance!!, inputOffset, matrix, outputOffset, width)
+            inputOffset += mDataWidth
         }
         return matrix
     }
@@ -74,7 +74,7 @@ class GLRGBLuminanceSource(width: Int, height: Int) : LuminanceSource(width, hei
         return true
     }
 
-    override fun crop(left: Int, top: Int, width: Int, height: Int): LuminanceSource {
+    override fun crop(mLeft: Int, mTop: Int, width: Int, height: Int): LuminanceSource {
         return GLRGBLuminanceSource(
             width,
             height

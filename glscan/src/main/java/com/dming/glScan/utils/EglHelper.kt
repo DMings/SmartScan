@@ -1,4 +1,4 @@
-package com.dming.smallScan.utils
+package com.dming.glScan.utils
 
 import android.opengl.EGL14
 import android.view.Surface
@@ -23,6 +23,9 @@ class EglHelper {
     private val mRenderType = 4
 
 
+    /**
+     * 初始化EGL环境
+     */
     fun initEgl(eglContext: EGLContext?, surface: Surface?) {
         //1. 得到Egl实例
         mEgl = EGLContext.getEGL() as EGL10
@@ -123,6 +126,9 @@ class EglHelper {
         }
     }
 
+    /**
+     * 释放EGL
+     */
     fun destroyEgl() {
         if (mEgl != null) {
             if (mEglSurface != null && mEglSurface !== EGL10.EGL_NO_SURFACE) {

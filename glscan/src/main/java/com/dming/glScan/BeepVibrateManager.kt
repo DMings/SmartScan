@@ -1,4 +1,4 @@
-package com.dming.smallScan
+package com.dming.glScan
 
 import android.app.Activity
 import android.content.Context
@@ -12,9 +12,8 @@ import java.io.IOException
 /**
  * 管理声音和震动
  */
-class BeepVibrateManager(
-    private val activity: Activity
-) : MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, Closeable {
+class BeepVibrateManager(private val activity: Activity) :
+    MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, Closeable {
     private var mMediaPlayer: MediaPlayer? = null
     private var mPlayBeep: Boolean = false
     private var mVibrate: Boolean = false
@@ -41,6 +40,9 @@ class BeepVibrateManager(
         }
     }
 
+    /**
+     * 创建MediaPlayer
+     */
     private fun buildMediaPlayer(activity: Context): MediaPlayer? {
         val mMediaPlayer = MediaPlayer()
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
@@ -75,10 +77,7 @@ class BeepVibrateManager(
     override fun onError(mp: MediaPlayer, what: Int, extra: Int): Boolean {
         if (what == MediaPlayer.MEDIA_ERROR_SERVER_DIED) {
             // we are finished, so put up an appropriate error toast if required
-            // and finish
-            activity.finish()
         } else {
-            // possibly media player error, so release and recreate
             mp.release()
             mMediaPlayer = null
         }

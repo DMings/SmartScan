@@ -1,11 +1,10 @@
-package com.dming.smallScan
+package com.dming.glScan.camera
 
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.view.Surface
 import android.view.WindowManager
-import com.dming.smallScan.utils.DLog
 
 
 /**
@@ -36,6 +35,9 @@ class Camera1 : BaseCamera(), ICamera {
         mCameraId = -1
     }
 
+    /**
+     * 开启摄像头，获取参数、图像尺寸列表，设置纹理
+     */
     override fun open(textureId: Int) {
 //        DLog.i("mCameraId: $mCameraId")
         mSurfaceTexture = SurfaceTexture(textureId)
@@ -47,24 +49,18 @@ class Camera1 : BaseCamera(), ICamera {
         for (size in mCameraParameters.supportedPreviewSizes) {
             mPreviewSizes.add(CameraSize(size.width, size.height))
         }
-        mCamera?.let {
-            it.setPreviewTexture(mSurfaceTexture)
-        }
+        mCamera?.setPreviewTexture(mSurfaceTexture)
 //        DLog.d("openCamera cost time: ${System.currentTimeMillis() - start}")
     }
 
+    /**
+     * 设置SurfaceTexture大小，设置预览参数
+     */
     override fun surfaceChange(width: Int, height: Int) {
-        viewWidth = width
-        viewHeight = height
+        mViewWidth = width
+        mViewHeight = height
         mSurfaceTexture?.setDefaultBufferSize(width, height)
         adjustCameraParameters(width, height)
-    }
-
-    override fun close() {
-        mSurfaceTexture?.setOnFrameAvailableListener(null)
-        mCamera?.release()
-        mSurfaceTexture?.release()
-        mSurfaceTexture = null
     }
 
     override fun release() {
@@ -79,6 +75,9 @@ class Camera1 : BaseCamera(), ICamera {
         return mCameraSize
     }
 
+    /**
+     * 设置预览尺寸参数
+     */
     private fun adjustCameraParameters(width: Int, height: Int) {
         val degree = getCameraRotation(mCameraInfo)
         Camera.getCameraInfo(mCameraId, mCameraInfo)
@@ -96,6 +95,9 @@ class Camera1 : BaseCamera(), ICamera {
         }
     }
 
+    /**
+     * 获取根据屏幕处理后的旋转角度，矫正后的角度
+     */
     private fun getCameraRotation(info: Camera.CameraInfo): Int {
         val rotation =
             if (mContext != null)
@@ -121,6 +123,9 @@ class Camera1 : BaseCamera(), ICamera {
         return result
     }
 
+    /**
+     * 设置自动聚焦
+     */
     private fun setAutoFocusInternal(): Boolean {
         return if (mCamera != null) {
             val modes = mCameraParameters.supportedFocusModes
@@ -139,6 +144,9 @@ class Camera1 : BaseCamera(), ICamera {
         }
     }
 
+    /**
+     * 设置闪光灯是否开启
+     */
     override fun setFlashLight(on: Boolean): Boolean {
         mCamera?.let {
             val mode = if (on) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
@@ -151,5 +159,14 @@ class Camera1 : BaseCamera(), ICamera {
         return false
     }
 
+    /**
+     * 关闭资源释放
+     */
+    override fun close() {
+        mSurfaceTexture?.setOnFrameAvailableListener(null)
+        mCamera?.release()
+        mSurfaceTexture?.release()
+        mSurfaceTexture = null
+    }
 
 }

@@ -1,4 +1,4 @@
-package com.dming.smallScan
+package com.dming.glScan.camera
 
 import android.content.Context
 import android.graphics.SurfaceTexture
@@ -7,11 +7,15 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
-import com.dming.smallScan.filter.LuminanceFilter
-import com.dming.smallScan.filter.PixelFilter
-import com.dming.smallScan.filter.PreviewFilter
-import com.dming.smallScan.utils.EglHelper
-import com.dming.smallScan.utils.FGLUtils
+import com.dming.glScan.SmartScanParameter
+import com.dming.glScan.filter.IShader
+import com.dming.glScan.filter.LuminanceFilter
+import com.dming.glScan.filter.PixelFilter
+import com.dming.glScan.filter.PreviewFilter
+import com.dming.glScan.utils.EglHelper
+import com.dming.glScan.utils.FGLUtils
+import com.dming.glScan.zxing.GLRGBLuminanceSource
+import com.dming.glScan.zxing.PixelHandler
 import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantLock
 
@@ -21,14 +25,14 @@ import java.util.concurrent.locks.ReentrantLock
 class GLCameraManager {
     private val mCamera = Camera1()
     private val mCameraMatrix = FloatArray(16)
-    //
+    // GL绘制线程
     private lateinit var mGLThread: HandlerThread
     private lateinit var mGLHandler: Handler
     private lateinit var mPreviewFilter: IShader
     private lateinit var mLuminanceFilter: IShader
     private var mTextureId: Int = 0
     private val mEglHelper = EglHelper()
-    //
+    // 像素读取，解码线程
     private lateinit var mPixelThread: HandlerThread
     private lateinit var mPixelHandler: PixelHandler
     private var mIsPixelCreate = false
@@ -48,11 +52,15 @@ class GLCameraManager {
     //
     private var mScale: Float = 1.0f
 
-    private var readQRCode: ((
+    private var onReadScanData: ((
         width: Int, height: Int,
         source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer
     ) -> Unit)? = null
 
+    /**
+     * 初始化GL绘制线程、scan读取像素解码线程，
+     * 获取摄像头信息
+     */
     fun init(context: Context) {
         mGLThread = HandlerThread("GL")
         mPixelThread = HandlerThread("SCAN")
@@ -65,6 +73,13 @@ class GLCameraManager {
         }
     }
 
+    /**
+     * surface创建，创建EGL环境、OES纹理，打开摄像头，设置纹理、监听器，
+     * 当数据来的时候获取旋转矩阵，用于矫正纹理旋转角度；图像数据来到分两步绘制，
+     * 第一步以亮度的方式绘制到FBO中，第二步以正常的方式绘制到预览界面；
+     * 在解码线程中，绘制FBO中的纹理数据，然后再读取像素数据（这里有种方式是直接
+     * 读取FBO纹理中的数据，我也尝试过读取，但是实际上速度却比绘制后读取更慢，我也不知道为什么）
+     */
     fun surfaceCreated(context: Context, holder: SurfaceHolder?) {
         mGLHandler.post {
             mEglHelper.initEgl(null, holder!!.surface)
@@ -87,7 +102,7 @@ class GLCameraManager {
                 mEglHelper.swapBuffers()
                 it.updateTexImage()
                 //
-                parseQRCode()
+                readScanDataFromGL()
             }
             mPixelHandler.post {
                 mPixelTexture = FGLUtils.createOESTexture()
@@ -103,6 +118,9 @@ class GLCameraManager {
         }
     }
 
+    /**
+     * surface大小改变，重置scale比例，重新创建FBO，配置GL着色器
+     */
     fun onSurfaceChanged(width: Int, height: Int) {
         mWidth = width
         mHeight = height
@@ -133,6 +151,9 @@ class GLCameraManager {
         }
     }
 
+    /**
+     * surface关闭，释放资源，删除纹理
+     */
     fun surfaceDestroyed() {
         mIsPixelCreate = false
         mPixelHandler.buffer = null
@@ -157,6 +178,9 @@ class GLCameraManager {
         }
     }
 
+    /**
+     * 资源释放，camera关闭，GL线程退出，解码线程推出
+     */
     fun destroy() {
         mCamera.release()
         mGLThread.quit()
@@ -165,6 +189,9 @@ class GLCameraManager {
 //        mPixelThread.join()
     }
 
+    /**
+     * 缩放变化调用
+     */
     fun onScaleChange(scale: Float) {
         mScale *= scale
         if (mScale < 1.0f) {
@@ -174,13 +201,19 @@ class GLCameraManager {
         }
     }
 
-    fun changeScanConfigure(glScanParameter: GLScanParameter) {
+    /**
+     * 扫描配置变化调用
+     */
+    fun changeScanConfigure(smartScanParameter: SmartScanParameter) {
         mPixelHandler.post {
-            mPixelHandler.setConfigure(glScanParameter, mWidth, mHeight)
+            mPixelHandler.setConfigure(smartScanParameter, mWidth, mHeight)
         }
     }
 
-    private fun parseQRCode() {
+    /**
+     * 从GL读取预览框数据
+     */
+    private fun readScanDataFromGL() {
         mPixelLock.tryLock()
         mPixelHandler.post {
             if (mIsPixelCreate) {
@@ -206,8 +239,8 @@ class GLCameraManager {
                             )
 //                    DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
                             byteBuffer.rewind()
-                            if (readQRCode != null && mPixelHandler.source != null) {
-                                readQRCode!!(
+                            if (onReadScanData != null && mPixelHandler.source != null) {
+                                onReadScanData!!(
                                     mPixelHandler.width,
                                     mPixelHandler.height,
                                     mPixelHandler.source!!,
@@ -227,15 +260,21 @@ class GLCameraManager {
         }
     }
 
-    fun setParseQRListener(
-        readQRCode: (
+    /**
+     * 监听扫码窗口的数据
+     */
+    fun setOnReadScanDateListener(
+        onReadScanData: (
             width: Int, height: Int,
             source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer
         ) -> Unit
     ) {
-        this.readQRCode = readQRCode
+        this.onReadScanData = onReadScanData
     }
 
+    /**
+     * 设置闪光灯开启与否
+     */
     fun setFlashLight(on: Boolean): Boolean {
         return mCamera.setFlashLight(on)
     }

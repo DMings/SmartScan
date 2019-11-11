@@ -23,7 +23,7 @@
     <!--    app:scanCornerThick="0dp"-->
     <!--    app:scanLineWidth="0dp"-->
 
-    <com.dming.smallScan.GLScanView
+    <com.dming.glScan.SmartScanView
         android:id="@+id/glScanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

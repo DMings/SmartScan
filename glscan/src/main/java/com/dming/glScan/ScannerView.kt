@@ -1,4 +1,4 @@
-package com.dming.smallScan
+package com.dming.glScan
 
 import android.animation.ValueAnimator
 import android.content.Context
@@ -41,26 +41,29 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         mScanLinePaint.isAntiAlias = true
     }
 
-    fun changeScanConfigure(glScanParameter: GLScanParameter, scannerRect: Rect) {
-        mScanLineDrawable = glScanParameter.scanLine
-        mScanCornerDrawable = glScanParameter.scanCorner
+    /**
+     * 改变参数调用
+     */
+    fun changeScanConfigure(smartScanParameter: SmartScanParameter, scannerRect: Rect) {
+        mScanLineDrawable = smartScanParameter.scanLine
+        mScanCornerDrawable = smartScanParameter.scanCorner
         if (mScanCornerDrawable == null) { // 有扫描框图片用图片
             //角长度
-            mCornerSize = glScanParameter.scanCornerSize.toInt()
+            mCornerSize = smartScanParameter.scanCornerSize.toInt()
             //角宽
-            mCornerThick = glScanParameter.scanCornerThick.toInt()
+            mCornerThick = smartScanParameter.scanCornerThick.toInt()
         }
         // 扫描线尺寸
-        mScanLineSize = glScanParameter.scanLineWidth.toInt()
+        mScanLineSize = smartScanParameter.scanLineWidth.toInt()
         // 框线宽
-        mFrameLineWidth = glScanParameter.scanFrameLineWidth.toInt()
+        mFrameLineWidth = smartScanParameter.scanFrameLineWidth.toInt()
         // 背景色和框线
-        mBgPaint.color = glScanParameter.scanBackgroundColor ?: 0
-        mLineFramePaint.color = glScanParameter.scanFrameLineColor ?: 0
+        mBgPaint.color = smartScanParameter.scanBackgroundColor ?: 0
+        mLineFramePaint.color = smartScanParameter.scanFrameLineColor ?: 0
 
         // 扫描框颜色
-        val cornerColor = if (glScanParameter.scanCornerColor != 0)
-            glScanParameter.scanCornerColor!! and 0x00FFFFFF or 0xFF000000.toInt()
+        val cornerColor = if (smartScanParameter.scanCornerColor != 0)
+            smartScanParameter.scanCornerColor!! and 0x00FFFFFF or 0xFF000000.toInt()
         else
             0
         mCornerPaint.color = cornerColor
@@ -73,12 +76,12 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
                 scannerRect.width().toFloat(),
                 mScanLineSize.toFloat()
             )
-            val statColor = if (glScanParameter.scanLineColor != 0)
-                glScanParameter.scanLineColor!! and 0x00FFFFFF or 0xAA000000.toInt()
+            val statColor = if (smartScanParameter.scanLineColor != 0)
+                smartScanParameter.scanLineColor!! and 0x00FFFFFF or 0xAA000000.toInt()
             else
                 0
-            val endColor = if (glScanParameter.scanLineColor != 0)
-                glScanParameter.scanLineColor!! and 0x00FFFFFF or 0x10000000
+            val endColor = if (smartScanParameter.scanLineColor != 0)
+                smartScanParameter.scanLineColor!! and 0x00FFFFFF or 0x10000000
             else
                 0
             val linearGradient = LinearGradient(
@@ -115,11 +118,6 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         }
     }
 
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        mAnimator?.cancel()
-    }
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         drawBg(canvas) // 背景
@@ -137,6 +135,9 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         }
     }
 
+    /**
+     * 绘制背景
+     */
     private fun drawBg(canvas: Canvas) {
         mScannerRect?.let {
             canvas.drawRect(
@@ -242,7 +243,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     }
 
     /**
-     * 绘制矩形框的四个角
+     * 绘制矩形框的四个角 Drawable
      */
     private fun drawCornerDrawable(canvas: Canvas) {
         mScanCornerDrawable?.let { scanCornerDrawable ->
@@ -334,6 +335,14 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
                 }
             }
         }
+    }
+
+    /**
+     * view被移除的资源释放
+     */
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        mAnimator?.cancel()
     }
 
 }
