@@ -18,8 +18,8 @@ class SmartScanParameter {
     var scanTopOffset: Float = 0f
     // 扫描框距离头部偏移，相对高度百分比 0 - 1.0f
     var scanPercentTopOffset: Float = 0f
-    // 约束扫描框为正方形，将使用最短的边为边长，可用在扫描二维码
-    var scanMustSquare: Boolean = false
+    // 约束扫描框为正方形，将使用最短的边为边长，可用在扫描二维码,默认开启
+    var scanMustSquare: Boolean? = null
     // 扫描线drawable，当存在时，优先使用
     var scanLine: Drawable? = null
     // 扫描框drawable，当存在时，优先使用

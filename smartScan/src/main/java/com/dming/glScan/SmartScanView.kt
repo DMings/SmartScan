@@ -76,6 +76,9 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         if (mGLScanParameter.scanLineWidth == 0f) {
             mGLScanParameter.scanLineWidth = 5 * oneDP
         }
+        if (mGLScanParameter.scanMustSquare == null) {
+            mGLScanParameter.scanMustSquare = true
+        }
         if (mGLScanParameter.scanBackgroundColor == null) {
             mGLScanParameter.scanBackgroundColor =
                 context.resources.getColor(R.color.smartScanBackgroundColor)

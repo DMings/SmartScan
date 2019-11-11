@@ -46,7 +46,7 @@ class JavaCreateActivity : AppCompatActivity() {
 //            this.scanBackgroundColor = 0x33000000
 //            this.addOneDCode = addOneDCode
 //            this.onlyOneDCode = onlyOneDCode
-            this.scanMustSquare = true
+//            this.scanMustSquare = true
 //            this.scanCornerSize = 18 * oneDP
 //            this.scanCornerThick = 3 * oneDP
 //            this.scanLineWidth = 6 * oneDP
