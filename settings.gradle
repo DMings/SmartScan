@@ -1,2 +1,2 @@
-include ':app',":glscan"
+include ':app',":smartscan"
 rootProject.name='SmartScan'
