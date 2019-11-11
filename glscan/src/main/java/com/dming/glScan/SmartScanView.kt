@@ -92,7 +92,7 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
             mGLScanParameter.scanCornerColor =
                 context.resources.getColor(R.color.smartScanColor)
         }
-        if (mGLScanParameter.scanFrameLineWidth == 0f) {
+        if (mGLScanParameter.scanFrameLineWidth == null) {
             mGLScanParameter.scanFrameLineWidth = 1f
         }
     }
@@ -140,18 +140,24 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
             // 扫描线尺寸
             val scanLineWidth =
                 typedArray.getDimension(R.styleable.SmartScanView_scanLineWidth, 0f)
-            // 扫描角和扫描框颜色
-            val scanLineColor = typedArray.getColor(R.styleable.SmartScanView_scanLineColor,0)
-            val scanCornerColor = typedArray.getColor(R.styleable.SmartScanView_scanCornerColor,0)
+            // 扫描线颜色
+            val scanLineColor = typedArray.getColor(R.styleable.SmartScanView_scanLineColor,
+                context.resources.getColor(R.color.smartScanColor))
+            // 扫描角颜色
+            val scanCornerColor = typedArray.getColor(R.styleable.SmartScanView_scanCornerColor,
+                context.resources.getColor(R.color.smartScanColor))
             // 框线宽
             val scanFrameLineWidth =
-                typedArray.getDimension(R.styleable.SmartScanView_scanFrameLineWidth, 0f)
-            // 背景色和框线
+                typedArray.getDimension(R.styleable.SmartScanView_scanFrameLineWidth, 1f)
+            // 背景色
             val scanBackgroundColor = typedArray.getColor(
-                R.styleable.SmartScanView_scanBackgroundColor, 0
+                R.styleable.SmartScanView_scanBackgroundColor, 
+                context.resources.getColor(R.color.smartScanBackgroundColor)
             )
+            // 扫描框线
             val scanFrameLineColor = typedArray.getColor(
-                R.styleable.SmartScanView_scanFrameLineColor, 0
+                R.styleable.SmartScanView_scanFrameLineColor,
+                context.resources.getColor(R.color.smartScanFrameColor)
             )
             typedArray.recycle()
             mGLScanParameter.apply {
@@ -419,21 +425,21 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
             this.resources.displayMetrics
         ).toInt()
         val padding = (mFlashLightBtnSize / 5)
-        btn_flash.setPadding(padding, padding, padding, padding)
-        val layoutParams = btn_flash.layoutParams
+        flashBtn.setPadding(padding, padding, padding, padding)
+        val layoutParams = flashBtn.layoutParams
         layoutParams.width = mFlashLightBtnSize
         layoutParams.height = mFlashLightBtnSize
-        btn_flash.layoutParams = layoutParams
-        btn_flash.setOnClickListener {
-            if (btn_flash.tag != "on") {
+        flashBtn.layoutParams = layoutParams
+        flashBtn.setOnClickListener {
+            if (flashBtn.tag != "on") {
                 if (setFlashLight(true)) {
-                    btn_flash.tag = "on"
-                    btn_flash.setImageResource(R.drawable.smart_scan_flashlight_on)
+                    flashBtn.tag = "on"
+                    flashBtn.setImageResource(R.drawable.smart_scan_flashlight_on)
                 }
             } else {
                 if (setFlashLight(false)) {
-                    btn_flash.tag = "off"
-                    btn_flash.setImageResource(R.drawable.smart_scan_flashlight_off)
+                    flashBtn.tag = "off"
+                    flashBtn.setImageResource(R.drawable.smart_scan_flashlight_off)
                 }
             }
         }
@@ -444,9 +450,9 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
      */
     private fun updateFlashlight(enableFlashlightBtn: Boolean) {
         if (enableFlashlightBtn) {
-            btn_flash.visibility = View.VISIBLE
+            flashBtn.visibility = View.VISIBLE
         } else {
-            btn_flash.visibility = View.GONE
+            flashBtn.visibility = View.GONE
         }
     }
 
@@ -456,8 +462,8 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
     private fun onFlashlightLayoutChange(rect: Rect) {
         if (mFlashLightBtnSize > 0) {
             val x = (rect.left + rect.width() / 2).toFloat()
-            btn_flash.x = x - mFlashLightBtnSize / 2
-            btn_flash.y = rect.bottom - mFlashLightBtnSize * 1.2f
+            flashBtn.x = x - mFlashLightBtnSize / 2
+            flashBtn.y = rect.bottom - mFlashLightBtnSize * 1.2f
         }
     }
 

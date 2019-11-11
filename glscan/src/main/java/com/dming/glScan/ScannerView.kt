@@ -56,7 +56,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         // 扫描线尺寸
         mScanLineSize = smartScanParameter.scanLineWidth.toInt()
         // 框线宽
-        mFrameLineWidth = smartScanParameter.scanFrameLineWidth.toInt()
+        mFrameLineWidth = (smartScanParameter.scanFrameLineWidth ?: 0f).toInt()
         // 背景色和框线
         mBgPaint.color = smartScanParameter.scanBackgroundColor ?: 0
         mLineFramePaint.color = smartScanParameter.scanFrameLineColor ?: 0

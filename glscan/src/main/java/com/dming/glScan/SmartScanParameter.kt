@@ -41,7 +41,7 @@ class SmartScanParameter {
     // 扫描线宽度大小
     var scanLineWidth: Float = 0f
     // 扫描框的细线宽度，一般1px
-    var scanFrameLineWidth: Float = 0f
+    var scanFrameLineWidth: Float? = null
     // 扫描框的细线颜色
     var scanFrameLineColor: Int? = null
     // 禁止窗口双指放大，默认开启

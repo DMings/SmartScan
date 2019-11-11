@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import com.dming.glScan.OnScanViewListener
 import es.dmoral.toasty.Toasty
-import kotlinx.android.synthetic.main.activity_full_screen.*
+import kotlinx.android.synthetic.main.activity_test.*
 
 
 class TestActivity : AppCompatActivity() {
@@ -20,7 +20,6 @@ class TestActivity : AppCompatActivity() {
         glScanView.setOnResultListener {
             Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
         }
-        v_test.setOnClickListener { glScanView.startDecode() }
         glScanView.setScanViewChangeListener(object : OnScanViewListener {
             override fun onCreate() {
 
@@ -28,12 +27,12 @@ class TestActivity : AppCompatActivity() {
 
             override fun onChange(rect: Rect) {
                 //
-                v_test.x = rect.left.toFloat()
-                v_test.y = rect.top.toFloat()
-                val lp = v_test.layoutParams
+                testView.x = rect.left.toFloat()
+                testView.y = rect.top.toFloat()
+                val lp = testView.layoutParams
                 lp.width = rect.width()
                 lp.height = rect.height()
-                v_test.layoutParams = lp
+                testView.layoutParams = lp
             }
 
             override fun onDestroy() {

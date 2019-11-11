@@ -1,5 +1,3 @@
-//#version 100 es
-
 precision mediump float;
 
 attribute vec4 inputPosition;

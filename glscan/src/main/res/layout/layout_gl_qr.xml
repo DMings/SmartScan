@@ -14,7 +14,7 @@
         android:layout_height="match_parent"/>
 
     <ImageView
-        android:id="@+id/btn_flash"
+        android:id="@+id/flashBtn"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:src="@drawable/smart_scan_flashlight_off"

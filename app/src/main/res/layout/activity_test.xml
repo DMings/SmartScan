@@ -27,17 +27,17 @@
         android:id="@+id/glScanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:scanBackgroundColor="#00000000"
+        app:scanCornerColor="#00000000"
+        app:scanFrameLineColor="#00000000"
+        app:scanLineColor="#00000000"
         app:scanMustSquare="true"
         app:scanPercentHeight="0.6"
         app:scanPercentTopOffset="0.2"
-        app:scanPercentWidth="0.72"
-        app:scanBackgroundColor="#00000000"
-        app:scanLineColor="#00000000"
-        app:scanCornerColor="#00000000"
-        />
+        app:scanPercentWidth="0.72" />
 
     <View
-        android:id="@+id/v_test"
+        android:id="@+id/testView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#33ff0000" />

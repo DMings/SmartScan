@@ -23,7 +23,6 @@ class FullScreenActivity : AppCompatActivity() {
             Toasty.success(this, "result: $it", Toast.LENGTH_LONG).show()
             finish()
         }
-        v_test.setOnClickListener { glScanView.startDecode() }
         glScanView.setScanViewChangeListener(object : OnScanViewListener {
             override fun onCreate() {
 
