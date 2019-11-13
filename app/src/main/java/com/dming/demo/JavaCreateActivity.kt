@@ -25,6 +25,7 @@ class JavaCreateActivity : AppCompatActivity() {
 
         glScanView.setOnResultListener {
             Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
+            finish()
         }
 
         val smartScanParameter = SmartScanParameter()

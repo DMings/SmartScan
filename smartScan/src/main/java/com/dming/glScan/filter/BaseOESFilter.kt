@@ -42,7 +42,6 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
     }
 
     override fun onChange(imgWidth: Int, imgHeight: Int, width: Int, height: Int) {
-//        DLog.i("BaseOESFilter 000 imgWidth: $imgWidth  - imgHeight: $imgHeight >>> width: $width  - height: $height")
         var imgHRatio = 1f
         var imgWRatio = 1f
         if (imgWidth > imgHeight) {
@@ -52,7 +51,6 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
         }
         texH = imgHRatio
         texW = imgWRatio
-//        DLog.i("BaseOESFilter 111 texH: $texH  - texW: $texW ")
         var ratio: Float
         if (width > height) {
             ratio = 1f * height / width
@@ -63,7 +61,6 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
             texH = imgHRatio * ratio
             texW = imgWRatio
         }
-//        DLog.i("BaseOESFilter 222 texH: $texH  - texW: $texW ratio:$ratio")
         if (texW > texH) {
             ratio = 1f / texH
             texH = 1f
@@ -73,8 +70,6 @@ open class BaseOESFilter(mContext: Context, frgId: Int) : IShader {
             texW = 1f
             texH *= ratio
         }
-//        DLog.i("BaseOESFilter 333 texH: $texH  - texW: $texW")
-        //
 //        Matrix.setIdentityM(mMvpMatrix, 0)
 //        Matrix.scaleM(mMvpMatrix, 0, texW, texH, 1f)
     }

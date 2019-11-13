@@ -1,6 +1,25 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.novoda.bintray-release'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.novoda:bintray-release:0.9.1'
+    }
+}
+
+publish {
+    userOrg = 'dming'
+    groupId = 'com.dming.glScan'
+    artifactId = 'smartscan'
+    publishVersion = '0.0.1'
+    desc = '运用OpenGL从零打造一个依赖极低、高灵活、快速预览不变形ZXing扫码库'
+    website = 'https://github.com/DMings/SmartScan'
+}
 
 android {
     compileSdkVersion 28
@@ -16,13 +35,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 }
 
 dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.google.zxing:core:3.4.0'
+    api 'com.google.zxing:core:3.3.3'
 }

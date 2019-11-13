@@ -104,7 +104,6 @@ class PixelFilter(mContext: Context) : IShader {
         private val VERTEX_INDEX = shortArrayOf(0, 1, 3, 2, 3, 1)
         private val VERTEX_POS =
             floatArrayOf(-1f, 1.0f, 0f, -1f, -1.0f, 0f, 1f, -1.0f, 0f, 1f, 1.0f, 0f)
-        //        val TEX_VERTEX = floatArrayOf(0f, 1f, 0f, 0f, 1f, 0f, 1f, 1f)
         val TEX_VERTEX = floatArrayOf(0f, 0f, 0f, 1f, 1f, 1f, 1f, 0f)
     }
 

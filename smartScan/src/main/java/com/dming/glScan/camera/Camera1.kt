@@ -39,7 +39,6 @@ class Camera1 : BaseCamera(), ICamera {
      * 开启摄像头，获取参数、图像尺寸列表，设置纹理
      */
     override fun open(textureId: Int) {
-//        DLog.i("mCameraId: $mCameraId")
         mSurfaceTexture = SurfaceTexture(textureId)
 //        val start = System.currentTimeMillis()
         mCamera = Camera.open(mCameraId)
