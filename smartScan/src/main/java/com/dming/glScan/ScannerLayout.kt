@@ -37,7 +37,7 @@ class ScannerLayout {
             val tt = if (ts <= 1) maxHeight * ts else ts
             width = if (ww > maxWidth) maxWidth else ww
             height = if (hh > maxHeight) maxHeight else hh
-            if (smartScanParameter.scanMustSquare) { // 用最小的边
+            if (smartScanParameter.scanMustSquare == true) { // 用最小的边
                 if (width > height) {
                     width = height
                 } else {

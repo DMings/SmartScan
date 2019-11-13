@@ -10,7 +10,7 @@
         android:id="@+id/glScanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:scanMustSquare="false"
+        app:scanMustSquare="true"
         app:scanPercentTopOffset="0.2"
         app:scanPercentWidth="0.72"
         app:scanPercentHeight="0.55"

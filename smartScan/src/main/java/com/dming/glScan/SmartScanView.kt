@@ -26,7 +26,7 @@ import java.nio.ByteBuffer
  */
 class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
 
-    private var mGLScanParameter = SmartScanParameter()
+    private var mSmartScanParameter = SmartScanParameter()
     private val mGLCameraManager = GLCameraManager()
     private var mViewWidth: Int = 0
     private var mViewHeight: Int = 0
@@ -54,7 +54,7 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
     ) {
         if (attrs != null) {
             handleAttribute(attrs)
-            init(mGLScanParameter)
+            init(mSmartScanParameter)
         }
     }
 
@@ -62,41 +62,41 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
      * 设置默认（缺失）参数
      */
     private fun setDefaultParameter(smartScanParameter: SmartScanParameter) {
-        mGLScanParameter = smartScanParameter
+        mSmartScanParameter = smartScanParameter
         val oneDP = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, 1f,
             this.resources.displayMetrics
         )
-        if (mGLScanParameter.scanCornerSize == 0f) {
-            mGLScanParameter.scanCornerSize = 18 * oneDP
+        if (mSmartScanParameter.scanCornerSize == 0f) {
+            mSmartScanParameter.scanCornerSize = 18 * oneDP
         }
-        if (mGLScanParameter.scanCornerThick == 0f) {
-            mGLScanParameter.scanCornerThick = 3 * oneDP
+        if (mSmartScanParameter.scanCornerThick == 0f) {
+            mSmartScanParameter.scanCornerThick = 3 * oneDP
         }
-        if (mGLScanParameter.scanLineWidth == 0f) {
-            mGLScanParameter.scanLineWidth = 5 * oneDP
+        if (mSmartScanParameter.scanLineWidth == 0f) {
+            mSmartScanParameter.scanLineWidth = 5 * oneDP
         }
-        if (mGLScanParameter.scanMustSquare == null) {
-            mGLScanParameter.scanMustSquare = true
+        if (mSmartScanParameter.scanMustSquare == null) {
+            mSmartScanParameter.scanMustSquare = true
         }
-        if (mGLScanParameter.scanBackgroundColor == null) {
-            mGLScanParameter.scanBackgroundColor =
+        if (mSmartScanParameter.scanBackgroundColor == null) {
+            mSmartScanParameter.scanBackgroundColor =
                 context.resources.getColor(R.color.smartScanBackgroundColor)
         }
-        if (mGLScanParameter.scanFrameLineColor == null) {
-            mGLScanParameter.scanFrameLineColor =
+        if (mSmartScanParameter.scanFrameLineColor == null) {
+            mSmartScanParameter.scanFrameLineColor =
                 context.resources.getColor(R.color.smartScanFrameColor)
         }
-        if (mGLScanParameter.scanLineColor == null) {
-            mGLScanParameter.scanLineColor =
+        if (mSmartScanParameter.scanLineColor == null) {
+            mSmartScanParameter.scanLineColor =
                 context.resources.getColor(R.color.smartScanColor)
         }
-        if (mGLScanParameter.scanCornerColor == null) {
-            mGLScanParameter.scanCornerColor =
+        if (mSmartScanParameter.scanCornerColor == null) {
+            mSmartScanParameter.scanCornerColor =
                 context.resources.getColor(R.color.smartScanColor)
         }
-        if (mGLScanParameter.scanFrameLineWidth == null) {
-            mGLScanParameter.scanFrameLineWidth = 1f
+        if (mSmartScanParameter.scanFrameLineWidth == null) {
+            mSmartScanParameter.scanFrameLineWidth = 1f
         }
     }
 
@@ -163,7 +163,7 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
                 context.resources.getColor(R.color.smartScanFrameColor)
             )
             typedArray.recycle()
-            mGLScanParameter.apply {
+            mSmartScanParameter.apply {
                 this.scanWidth = scanWidth
                 this.scanHeight = scanHeight
                 this.scanPercentWidth = scanPercentWidth
@@ -207,7 +207,7 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         View.inflate(context, R.layout.layout_gl_qr, this)
         mGLCameraManager.init(context)
         initFlashlight()
-        updateConfigure(mGLScanParameter)
+        updateConfigure(mSmartScanParameter)
         glSurfaceView.holder.addCallback(object : SurfaceHolder.Callback {
 
             override fun surfaceCreated(holder: SurfaceHolder?) {
@@ -280,7 +280,7 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
         val scaleGestureDetector = ScaleGestureDetector(context, this)
         glSurfaceView.setOnTouchListener { _, event ->
-            if (mGLScanParameter.disableScale) {
+            if (mSmartScanParameter.disableScale) {
                 false
             } else {
                 scaleGestureDetector.onTouchEvent(event)
@@ -320,14 +320,14 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
      */
     private fun changeScanConfigure() {
         val viewConfigure = ScannerLayout.getViewConfigure(
-            mGLScanParameter,
+            mSmartScanParameter,
             mViewWidth,
             mViewHeight
         )
         // 改变扫描框
-        scannerView.changeScanConfigure(mGLScanParameter, viewConfigure)
+        scannerView.changeScanConfigure(mSmartScanParameter, viewConfigure)
         // 改变读取像素
-        mGLCameraManager.changeScanConfigure(mGLScanParameter)
+        mGLCameraManager.changeScanConfigure(mSmartScanParameter)
         // 回调变化
         if (mOnScanViewListener != null) {
             post { mOnScanViewListener?.onChange(viewConfigure) }
@@ -502,8 +502,8 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
     /**
      * 获取现在的配置，一般结合updateConfigure(smartScanParameter: SmartScanParameter) 使用
      */
-    fun getGLScanParameter(): SmartScanParameter {
-        return mGLScanParameter
+    fun getSmartScanParameter(): SmartScanParameter {
+        return mSmartScanParameter
     }
 
     /**

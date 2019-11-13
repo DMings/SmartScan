@@ -27,14 +27,14 @@ class JavaCreateActivity : AppCompatActivity() {
             Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
         }
 
-        val gLViewParameter = SmartScanParameter()
+        val smartScanParameter = SmartScanParameter()
 
 //        val oneDP = TypedValue.applyDimension(
 //            TypedValue.COMPLEX_UNIT_DIP, 1f,
 //            this.resources.displayMetrics
 //        )
 
-        gLViewParameter.apply {
+        smartScanParameter.apply {
 //            this.scanWidth = scanWidth
 //            this.scanHeight = scanHeight
             this.scanPercentWidth = 0.65f
@@ -59,7 +59,7 @@ class JavaCreateActivity : AppCompatActivity() {
             this.enableFlashlightBtn = true
             this.scanCorner = resources.getDrawable(R.drawable.smart_scan_corner_bg)
         }
-        glScanView.init(gLViewParameter)
+        glScanView.init(smartScanParameter)
     }
 
 }

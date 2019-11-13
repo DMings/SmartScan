@@ -20,24 +20,24 @@ class ChangeViewActivity : AppCompatActivity() {
             Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
         }
         qrBtn.setOnClickListener {
-            val glScanParameter = glScanView.getGLScanParameter()
-            glScanParameter.scanTopOffset = 80 * oneDP
-            glScanParameter.scanWidth = 300 * oneDP
-            glScanParameter.scanHeight = 300 * oneDP
-            glScanParameter.scanLineWidth = 6 * oneDP
-            glScanParameter.onlyOneDCode = false
-            glScanParameter.enableFlashlightBtn = true
-            glScanView.updateConfigure(glScanParameter)
+            val smartScanParameter = glScanView.getSmartScanParameter()
+            smartScanParameter.scanTopOffset = 80 * oneDP
+            smartScanParameter.scanWidth = 300 * oneDP
+            smartScanParameter.scanHeight = 300 * oneDP
+            smartScanParameter.scanLineWidth = 6 * oneDP
+            smartScanParameter.onlyOneDCode = false
+            smartScanParameter.enableFlashlightBtn = true
+            glScanView.updateConfigure(smartScanParameter)
         }
         oneDBtn.setOnClickListener {
-            val glScanParameter = glScanView.getGLScanParameter()
-            glScanParameter.scanTopOffset = 150 * oneDP
-            glScanParameter.scanWidth = 300 * oneDP
-            glScanParameter.scanHeight = 80 * oneDP
-            glScanParameter.scanLineWidth = 4 * oneDP
-            glScanParameter.onlyOneDCode = true
-            glScanParameter.enableFlashlightBtn = false
-            glScanView.updateConfigure(glScanParameter)
+            val smartScanParameter = glScanView.getSmartScanParameter()
+            smartScanParameter.scanTopOffset = 150 * oneDP
+            smartScanParameter.scanWidth = 300 * oneDP
+            smartScanParameter.scanHeight = 120 * oneDP
+            smartScanParameter.scanLineWidth = 4 * oneDP
+            smartScanParameter.onlyOneDCode = true
+            smartScanParameter.enableFlashlightBtn = false
+            glScanView.updateConfigure(smartScanParameter)
         }
     }
 

@@ -31,14 +31,14 @@
                 android:id="@+id/qrBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="二维码扫码" />
+                android:text="仅二维码扫码" />
 
             <Button
                 android:id="@+id/oneDBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="50dp"
-                android:text="一维码扫码" />
+                android:text="仅一维码扫码" />
 
         </LinearLayout>
     </FrameLayout>

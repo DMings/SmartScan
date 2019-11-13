@@ -24,16 +24,16 @@ class FullScreenActivity : AppCompatActivity() {
             finish()
         }
         glScanView.setScanViewChangeListener(object : OnScanViewListener {
+            // surface创建的时候回调
             override fun onCreate() {
-
             }
 
+            // 扫描窗口位置变化即回调
             override fun onChange(rect: Rect) {
-
             }
 
+            // surface销毁的时候回调
             override fun onDestroy() {
-
             }
 
         })

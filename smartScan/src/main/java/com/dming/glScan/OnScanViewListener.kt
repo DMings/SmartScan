@@ -7,15 +7,15 @@ import android.graphics.Rect
  */
 interface OnScanViewListener {
     /**
-     * View创建
+     * 扫描窗口创建
      */
     fun onCreate()
     /**
-     * View大小该表
+     * 扫描窗口大小改变
      */
     fun onChange(rect: Rect)
     /**
-     * View被移除
+     * 扫描窗口被销毁
      */
     fun onDestroy()
 }
