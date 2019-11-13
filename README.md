@@ -25,6 +25,16 @@
 ```
 implementation 'com.dming.glScan:smartscan:0.0.1'
 ```
+若引用不上可在项目的build.gradle加上maven仓库地址，如下：
+```
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://dl.bintray.com/dming/maven' }
+    }
+}
+```
 扫描框、扫描线、背景等基础UI已实现，若没有需求，开箱即用；若有定制，按需设置参数即可
 
 xml创建：
