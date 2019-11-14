@@ -10,8 +10,9 @@ import android.view.SurfaceHolder
 import android.view.View
 import android.widget.FrameLayout
 import com.dming.glScan.camera.GLCameraManager
-import com.dming.glScan.utils.DLog
 import com.dming.glScan.zxing.GLRGBLuminanceSource
+import com.dming.glScan.zxing.OnGrayImgListener
+import com.dming.glScan.zxing.OnResultListener
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.ReaderException
 import com.google.zxing.Result
@@ -31,9 +32,10 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
     private val mGLCameraManager = GLCameraManager()
     private var mViewWidth: Int = 0
     private var mViewHeight: Int = 0
-    private var mOnGrayImg: ((width: Int, height: Int, grayByteBuffer: ByteBuffer) -> Unit)? = null
-    private var mOnDecodeThreadResult: ((text: String) -> Unit)? = null
-    private var mOnUIThreadResult: ((text: String) -> Unit)? = null
+    private var mOnGrayImg: OnGrayImgListener? = null
+    //    private var mOnDecodeThreadResult: ((text: String) -> Unit)? = null
+    private var mOnDecodeThreadResult: OnResultListener? = null
+    private var mOnUIThreadResult: OnResultListener? = null
     private var mOnScanViewListener: OnScanViewListener? = null
     private var mDecodeOnce: Boolean = false
     private var mCanDecode: Boolean = false
@@ -79,6 +81,9 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         }
         if (mSmartScanParameter.scanMustSquare == null) {
             mSmartScanParameter.scanMustSquare = true
+        }
+        if (mSmartScanParameter.scanLineTime == null) {
+            mSmartScanParameter.scanLineTime = 3000
         }
         if (mSmartScanParameter.scanBackgroundColor == null) {
             mSmartScanParameter.scanBackgroundColor =
@@ -147,6 +152,9 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
             // 扫描线尺寸
             val scanLineWidth =
                 typedArray.getDimension(R.styleable.SmartScanView_scanLineWidth, 0f)
+            // 扫描线时间
+            val scanLineTime =
+                typedArray.getInt(R.styleable.SmartScanView_scanLineTime, 3000)
             // 扫描线颜色
             val scanLineColor = typedArray.getColor(
                 R.styleable.SmartScanView_scanLineColor,
@@ -187,6 +195,7 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
                 this.scanCornerSize = scanCornerSize
                 this.scanCornerThick = scanCornerThick
                 this.scanLineWidth = scanLineWidth
+                this.scanLineTime = scanLineTime
                 this.scanFrameLineWidth = scanFrameLineWidth
                 this.scanFrameLineColor = scanFrameLineColor
                 this.scanLineColor = scanLineColor
@@ -252,9 +261,7 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
      */
     private fun initEvent() {
         mGLCameraManager.setOnReadScanDateListener { width: Int, height: Int, source: GLRGBLuminanceSource, grayByteBuffer: ByteBuffer ->
-            if (this.mOnGrayImg != null) {
-                this.mOnGrayImg!!(width, height, grayByteBuffer)
-            }
+            this.mOnGrayImg?.onGrayImg(width, height, grayByteBuffer)
             if (mCanDecode && (this.mOnDecodeThreadResult != null || this.mOnUIThreadResult != null)) {
 //                val start = System.currentTimeMillis()
                 source.setData(grayByteBuffer)
@@ -265,22 +272,14 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
                     if (mDecodeOnce) {
                         mCanDecode = false
                         mBeepVibrateManager?.playBeepSoundAndVibrate()
-                        this.mOnDecodeThreadResult?.let { onDecodeThreadResult ->
-                            onDecodeThreadResult(result.text)
-                        }
+                        this.mOnDecodeThreadResult?.onResult(result)
                         post {
-                            this.mOnUIThreadResult?.let { onUIThreadResult ->
-                                onUIThreadResult(result.text)
-                            }
+                            this.mOnUIThreadResult?.onResult(result)
                         }
                     } else {
-                        this.mOnDecodeThreadResult?.let { onDecodeThreadResult ->
-                            onDecodeThreadResult(result.text)
-                        }
+                        this.mOnDecodeThreadResult?.onResult(result)
                         post {
-                            this.mOnUIThreadResult?.let { onUIThreadResult ->
-                                onUIThreadResult(result.text)
-                            }
+                            this.mOnUIThreadResult?.onResult(result)
                         }
                     }
                 }
@@ -359,43 +358,39 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
     /**
      * 设置获取亮度（灰度）图片监听
      */
-    fun setGrayImgListener(
-        mOnGrayImg: (
-            width: Int, height: Int, grayByteBuffer: ByteBuffer
-        ) -> Unit
-    ) {
-        this.mOnGrayImg = mOnGrayImg
+    fun setGrayImgListener(onGrayImg: OnGrayImgListener) {
+        this.mOnGrayImg = onGrayImg
     }
 
     /**
      * 从解码线程中监听解码结果，会不断的触发，可使用stopDecode()关闭
      */
-    fun setOnResultInThreadListener(mOnResult: (text: String) -> Unit) {
-        this.mOnDecodeThreadResult = mOnResult
+    fun setOnResultInThreadListener(onResultListener: OnResultListener) {
+        this.mOnDecodeThreadResult = onResultListener
         this.mDecodeOnce = false
     }
 
     /**
      * 从解码线程中监听解码结果，成功后会停止，可使用startDecode()开启
      */
-    fun setOnResultOnceInThreadListener(mOnResult: (text: String) -> Unit) {
-        this.mOnDecodeThreadResult = mOnResult
+    fun setOnResultOnceInThreadListener(onResultListener: OnResultListener) {
+        this.mOnDecodeThreadResult = onResultListener
         this.mDecodeOnce = true
     }
 
     /**
      * 从UI线程中监听解码结果，会不断的触发，可使用stopDecode()关闭
      */
-    fun setOnResultListener(mOnResult: (text: String) -> Unit) {
-        this.mOnUIThreadResult = mOnResult
+    fun setOnResultListener(onResultListener: OnResultListener) {
+        this.mOnUIThreadResult = onResultListener
         this.mDecodeOnce = false
     }
 
     /**
      * 从UI线程中监听解码结果，成功后会停止，可使用startDecode()开启
      */
-    fun setOnResultOnceListener(mOnResult: (text: String) -> Unit) {
-        this.mOnUIThreadResult = mOnResult
+    fun setOnResultOnceListener(onResultListener: OnResultListener) {
+        this.mOnUIThreadResult = onResultListener
         this.mDecodeOnce = true
     }
 

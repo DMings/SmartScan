@@ -7,26 +7,34 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import com.dming.glScan.SmartScanParameter
 import com.dming.glScan.SmartScanView
+import com.dming.glScan.zxing.OnResultListener
+import com.google.zxing.Result
 import es.dmoral.toasty.Toasty
 
 class JavaCreateActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val flayout = FrameLayout(this)
+        val frameLayout = FrameLayout(this)
         val params = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        flayout.layoutParams = params
-        setContentView(flayout)
-        val glScanView = SmartScanView(this)
-        flayout.addView(glScanView)
+        frameLayout.layoutParams = params
+        setContentView(frameLayout)
+        val smartScanView = SmartScanView(this)
+        frameLayout.addView(smartScanView)
 
-        glScanView.setOnResultListener {
-            Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
-            finish()
-        }
+        smartScanView.setOnResultOnceListener(object : OnResultListener {
+            override fun onResult(result: Result) {
+                Toasty.success(
+                    this@JavaCreateActivity,
+                    "result: ${result.text}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+            }
+        })
 
         val smartScanParameter = SmartScanParameter()
 
@@ -36,7 +44,7 @@ class JavaCreateActivity : AppCompatActivity() {
 //        )
 
         smartScanParameter.apply {
-//            this.scanWidth = scanWidth
+            //            this.scanWidth = scanWidth
 //            this.scanHeight = scanHeight
             this.scanPercentWidth = 0.65f
             this.scanPercentHeight = 0.65f
@@ -60,7 +68,7 @@ class JavaCreateActivity : AppCompatActivity() {
             this.enableFlashlightBtn = true
             this.scanCorner = resources.getDrawable(R.drawable.smart_scan_corner_bg)
         }
-        glScanView.init(smartScanParameter)
+        smartScanView.init(smartScanParameter)
     }
 
 }

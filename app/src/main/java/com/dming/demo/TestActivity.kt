@@ -6,8 +6,12 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import com.dming.glScan.OnScanViewListener
+import com.dming.glScan.zxing.OnGrayImgListener
+import com.dming.glScan.zxing.OnResultListener
+import com.google.zxing.Result
 import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.activity_test.*
+import java.nio.ByteBuffer
 
 
 class TestActivity : AppCompatActivity() {
@@ -17,10 +21,16 @@ class TestActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_test)
-        glScanView.setOnResultListener {
-            Toasty.success(this, "result: $it", Toast.LENGTH_SHORT).show()
-        }
-        glScanView.setScanViewChangeListener(object : OnScanViewListener {
+        smartScanView.setOnResultOnceListener(object : OnResultListener {
+            override fun onResult(result: Result) {
+                Toasty.success(
+                    this@TestActivity,
+                    "result: ${result.text}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
+        smartScanView.setScanViewChangeListener(object : OnScanViewListener {
             override fun onCreate() {
 
             }
@@ -44,17 +54,19 @@ class TestActivity : AppCompatActivity() {
     }
 
     private fun testGetImg() {
-        glScanView.setGrayImgListener { width, height, grayByteBuffer ->
-            if (mTestImgBitmap == null || mTestImgBitmap!!.width != width ||
-                mTestImgBitmap!!.height != height
-            ) {
-                mTestImgBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        smartScanView.setGrayImgListener(object : OnGrayImgListener {
+            override fun onGrayImg(width: Int, height: Int, grayByteBuffer: ByteBuffer) {
+                if (mTestImgBitmap == null || mTestImgBitmap!!.width != width ||
+                    mTestImgBitmap!!.height != height
+                ) {
+                    mTestImgBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                }
+                mTestImgBitmap!!.copyPixelsFromBuffer(grayByteBuffer)
+                runOnUiThread {
+                    testImg.setImageBitmap(mTestImgBitmap)
+                }
             }
-            mTestImgBitmap!!.copyPixelsFromBuffer(grayByteBuffer)
-            runOnUiThread {
-                testImg.setImageBitmap(mTestImgBitmap)
-            }
-        }
+        })
     }
 
 }

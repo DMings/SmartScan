@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import com.dming.glScan.OnScanViewListener
+import com.dming.glScan.zxing.OnResultListener
+import com.google.zxing.Result
 import com.gyf.immersionbar.ImmersionBar
 import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.activity_full_screen.*
@@ -19,11 +21,19 @@ class FullScreenActivity : AppCompatActivity() {
         btn_back.setOnClickListener {
             onBackPressed()
         }
-        glScanView.setOnResultOnceListener {
-            Toasty.success(this, "result: $it", Toast.LENGTH_LONG).show()
-            finish()
-        }
-        glScanView.setScanViewChangeListener(object : OnScanViewListener {
+
+        smartScanView.setOnResultOnceListener(object : OnResultListener {
+            override fun onResult(result: Result) {
+                Toasty.success(
+                    this@FullScreenActivity,
+                    "result: ${result.text}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+            }
+        })
+
+        smartScanView.setScanViewChangeListener(object : OnScanViewListener {
             // surface创建的时候回调
             override fun onCreate() {
             }

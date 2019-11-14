@@ -7,7 +7,7 @@
     android:orientation="vertical">
 
     <com.dming.glScan.SmartScanView
-        android:id="@+id/glScanView"
+        android:id="@+id/smartScanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:enableFlashlightBtn="true"

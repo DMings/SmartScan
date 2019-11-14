@@ -24,7 +24,7 @@
     <!--    app:scanLineWidth="0dp"-->
 
     <com.dming.glScan.SmartScanView
-        android:id="@+id/glScanView"
+        android:id="@+id/smartScanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:scanBackgroundColor="#00000000"
