@@ -2,7 +2,7 @@
 
 [**SmartScan**](https://github.com/DMings/SmartScan)运用OpenGL从零打造一个依赖极低、高灵活、快速预览不变形ZXing扫码库，实现思路写在最后，喜欢可以看下去。
 
- - 下面是演示效果，可直接下载试试 [演示apk](https://github.com/DMings/SmartScan/blob/master/demosrc/smart_scan_v0.0.1.apk)
+ - 下面是演示效果，可直接下载试试 [演示apk位置](https://github.com/DMings/SmartScan/blob/master/demosrc/)
 
 ![旋转扫码演示](https://github.com/DMings/SmartScan/blob/master/demosrc/rotation_scan_480.gif)
 ![扫描途中变换参数](https://github.com/DMings/SmartScan/blob/master/demosrc/change_scan_480.gif)
@@ -18,12 +18,12 @@
 5. 灵活的创建方式，可从xml中创建，同时也能以代码的形式直接new出来
 - **快速预览不变形**
 1. 为提高识别速度，针对一般扫码只用到二维码，也就是QR码，所以二维码部分仅保留QR识别，默认也仅开启QR识别。一维码种类较多，这里也提供，若需要仅使用一维码或二维码一维码同时使用，也提供相应的属性供设置
-2. 不必考虑是否全屏，保证**预览图像不变形**，处理好**图像旋转**问题，包括activity旋转的自动销毁创建问题、配置 android:configChanges="keyboardHidden|orientation|screenSize"  的时候，旋转不销毁问题
+2. 不必考虑是否全屏，保证**预览图像不变形**，处理好**图像旋转**问题，包括activity旋转的自动销毁创建问题、配置 android:configChanges="keyboardHidden|orientation|screenSize" 的时候，旋转不销毁问题、旋转180度surfaceChange无法监听问题
 - **该库使用方式：**
 
 在build.gradle加入依赖
 ```
-implementation 'com.dming.glScan:smartscan:0.0.1'
+implementation 'com.dming.glScan:smartscan:0.0.2'
 ```
 若引用不上可在项目的build.gradle加上maven仓库地址，如下：
 ```
