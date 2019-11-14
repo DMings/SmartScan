@@ -21,6 +21,7 @@ import com.google.zxing.qrcode.QRCodeReader
 import kotlinx.android.synthetic.main.layout_gl_qr.view.*
 import java.nio.ByteBuffer
 
+
 /**
  * 扫码View核心类
  */
@@ -106,7 +107,8 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
     private fun handleAttribute(attrs: AttributeSet?) {
         attrs?.let {
             val typedArray = context.obtainStyledAttributes(it, R.styleable.SmartScanView)
-            val scanPercentWidth = typedArray.getFloat(R.styleable.SmartScanView_scanPercentWidth, 0f)
+            val scanPercentWidth =
+                typedArray.getFloat(R.styleable.SmartScanView_scanPercentWidth, 0f)
             val scanWidth = typedArray.getDimension(R.styleable.SmartScanView_scanWidth, 0f)
             val scanPercentHeight =
                 typedArray.getFloat(R.styleable.SmartScanView_scanPercentHeight, 0f)
@@ -114,14 +116,16 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
             val scanPercentTopOffset =
                 typedArray.getFloat(R.styleable.SmartScanView_scanPercentTopOffset, 0f)
             val scanTopOffset = typedArray.getDimension(R.styleable.SmartScanView_scanTopOffset, 0f)
-            val scanMustSquare = typedArray.getBoolean(R.styleable.SmartScanView_scanMustSquare, true)
+            val scanMustSquare =
+                typedArray.getBoolean(R.styleable.SmartScanView_scanMustSquare, true)
 
             val enableFlashlightBtn =
                 typedArray.getBoolean(R.styleable.SmartScanView_enableFlashlightBtn, false)
             val disableScale = typedArray.getBoolean(R.styleable.SmartScanView_disableScale, false)
 
             val enableBeep = typedArray.getBoolean(R.styleable.SmartScanView_enableBeep, false)
-            val enableVibrate = typedArray.getBoolean(R.styleable.SmartScanView_enableVibrate, false)
+            val enableVibrate =
+                typedArray.getBoolean(R.styleable.SmartScanView_enableVibrate, false)
 
             val addOneDCode = typedArray.getBoolean(R.styleable.SmartScanView_addOneDCode, false)
             val onlyOneDCode = typedArray.getBoolean(R.styleable.SmartScanView_onlyOneDCode, false)
@@ -144,17 +148,21 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
             val scanLineWidth =
                 typedArray.getDimension(R.styleable.SmartScanView_scanLineWidth, 0f)
             // 扫描线颜色
-            val scanLineColor = typedArray.getColor(R.styleable.SmartScanView_scanLineColor,
-                context.resources.getColor(R.color.smartScanColor))
+            val scanLineColor = typedArray.getColor(
+                R.styleable.SmartScanView_scanLineColor,
+                context.resources.getColor(R.color.smartScanColor)
+            )
             // 扫描角颜色
-            val scanCornerColor = typedArray.getColor(R.styleable.SmartScanView_scanCornerColor,
-                context.resources.getColor(R.color.smartScanColor))
+            val scanCornerColor = typedArray.getColor(
+                R.styleable.SmartScanView_scanCornerColor,
+                context.resources.getColor(R.color.smartScanColor)
+            )
             // 框线宽
             val scanFrameLineWidth =
                 typedArray.getDimension(R.styleable.SmartScanView_scanFrameLineWidth, 1f)
             // 背景色
             val scanBackgroundColor = typedArray.getColor(
-                R.styleable.SmartScanView_scanBackgroundColor, 
+                R.styleable.SmartScanView_scanBackgroundColor,
                 context.resources.getColor(R.color.smartScanBackgroundColor)
             )
             // 扫描框线
@@ -248,12 +256,12 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
                 this.mOnGrayImg!!(width, height, grayByteBuffer)
             }
             if (mCanDecode && (this.mOnDecodeThreadResult != null || this.mOnUIThreadResult != null)) {
-                val start = System.currentTimeMillis()
+//                val start = System.currentTimeMillis()
                 source.setData(grayByteBuffer)
                 val binaryBitmap = BinaryBitmap(GlobalHistogramBinarizer(source))
                 val result = decodeBinaryBitmap(binaryBitmap)
                 if (result != null) {
-                    DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
+//                    DLog.i("width: $width height: $height decode cost time: ${System.currentTimeMillis() - start}  result: ${result.text}")
                     if (mDecodeOnce) {
                         mCanDecode = false
                         mBeepVibrateManager?.playBeepSoundAndVibrate()

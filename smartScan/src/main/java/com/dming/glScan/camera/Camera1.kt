@@ -3,8 +3,12 @@ package com.dming.glScan.camera
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
+import android.hardware.SensorManager
+import android.view.Display
+import android.view.OrientationEventListener
 import android.view.Surface
 import android.view.WindowManager
+import com.dming.glScan.utils.DLog
 
 
 /**
@@ -19,9 +23,37 @@ class Camera1 : BaseCamera(), ICamera {
     private var mSurfaceTexture: SurfaceTexture? = null
     private var mContext: Context? = null
     private var mFlashModes: List<String>? = null
+    //
+    private var mOrientationListener: OrientationEventListener? = null
+    private lateinit var mDisplay: Display
+    private var mRotation = 0
 
     override fun init(context: Context) {
         mContext = context
+        mDisplay =
+            (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+        mRotation = mDisplay.rotation
+        val orientationEventListener = object : OrientationEventListener(
+            context,
+            SensorManager.SENSOR_DELAY_NORMAL
+        ) {
+            override fun onOrientationChanged(orientation: Int) {
+                if (mRotation != mDisplay.rotation) {
+                    // 旋转了180的情形，并不会走 surfaceChange 需要手动处理
+                    if (kotlin.math.abs(mRotation - mDisplay.rotation) == 2) {
+                        adjustCameraParameters(mViewWidth, mViewHeight)
+                    }
+//                    DLog.i("Orientation changed to ${mDisplay.rotation}")
+                }
+            }
+        }
+        if (orientationEventListener.canDetectOrientation()) {
+            orientationEventListener.enable()
+        } else {
+            orientationEventListener.disable()
+        }
+        mOrientationListener = orientationEventListener
+        //
         var i = 0
         val count = Camera.getNumberOfCameras()
         while (i < count) {
@@ -63,7 +95,7 @@ class Camera1 : BaseCamera(), ICamera {
     }
 
     override fun release() {
-        //
+        mOrientationListener?.disable()
     }
 
     override fun getSurfaceTexture(): SurfaceTexture? {
@@ -98,13 +130,9 @@ class Camera1 : BaseCamera(), ICamera {
      * 获取根据屏幕处理后的旋转角度，矫正后的角度
      */
     private fun getCameraRotation(info: Camera.CameraInfo): Int {
-        val rotation =
-            if (mContext != null)
-                (mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                    .defaultDisplay.rotation
-            else 0
+        mRotation = mDisplay.rotation
         var degree = 0
-        when (rotation) {
+        when (mRotation) {
             Surface.ROTATION_0 -> degree = 0
             Surface.ROTATION_90 -> degree = 90
             Surface.ROTATION_180 -> degree = 180
@@ -148,7 +176,8 @@ class Camera1 : BaseCamera(), ICamera {
      */
     override fun setFlashLight(on: Boolean): Boolean {
         mCamera?.let {
-            val mode = if (on) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
+            val mode =
+                if (on) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
             if (mFlashModes != null && mFlashModes!!.contains(mode)) {
                 mCameraParameters.flashMode = mode
                 it.parameters = mCameraParameters

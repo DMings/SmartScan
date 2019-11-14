@@ -3,7 +3,6 @@ package com.dming.glScan.camera
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
-import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.SurfaceHolder
@@ -12,6 +11,7 @@ import com.dming.glScan.filter.IShader
 import com.dming.glScan.filter.LuminanceFilter
 import com.dming.glScan.filter.PixelFilter
 import com.dming.glScan.filter.PreviewFilter
+import com.dming.glScan.utils.DLog
 import com.dming.glScan.utils.EglHelper
 import com.dming.glScan.utils.FGLUtils
 import com.dming.glScan.zxing.GLRGBLuminanceSource
@@ -27,15 +27,14 @@ class GLCameraManager {
     private val mCameraMatrix = FloatArray(16)
     // GL绘制线程
     private lateinit var mGLThread: HandlerThread
-    private lateinit var mGLHandler: Handler
-    private lateinit var mPreviewFilter: IShader
-    private lateinit var mLuminanceFilter: IShader
+    private lateinit var mGLHandler: GLHandler
+    private var mPreviewFilter: IShader? = null
+    private var mLuminanceFilter: IShader? = null
     private var mTextureId: Int = 0
     private val mEglHelper = EglHelper()
     // 像素读取，解码线程
     private lateinit var mPixelThread: HandlerThread
     private lateinit var mPixelHandler: PixelHandler
-    private var mIsPixelCreate = false
     private val mPixelLock = ReentrantLock()
     //
     private var mWidth: Int = 0
@@ -48,7 +47,7 @@ class GLCameraManager {
     //
     private var mFrameIds: IntArray? = null
     private var mPixelTexture = -1
-    private lateinit var mPixelFilter: IShader
+    private var mPixelFilter: IShader? = null
     //
     private var mScale: Float = 1.0f
 
@@ -65,7 +64,7 @@ class GLCameraManager {
         mGLThread = HandlerThread("GL")
         mPixelThread = HandlerThread("SCAN")
         mGLThread.start()
-        mGLHandler = Handler(mGLThread.looper)
+        mGLHandler = GLHandler(mGLThread.looper)
         mPixelThread.start()
         mPixelHandler = PixelHandler(mPixelThread.looper)
         mGLHandler.post {
@@ -81,38 +80,55 @@ class GLCameraManager {
      * 读取FBO纹理中的数据，我也尝试过读取，但是实际上速度却比绘制后读取更慢，我也不知道为什么）
      */
     fun surfaceCreated(context: Context, holder: SurfaceHolder?) {
-        mGLHandler.post {
-            mEglHelper.initEgl(null, holder!!.surface)
-            mTextureId = FGLUtils.createOESTexture()
-            mPreviewFilter = PreviewFilter(context)
-            mLuminanceFilter = LuminanceFilter(context)
-            mCamera.open(mTextureId)
-            mCamera.getSurfaceTexture()?.setOnFrameAvailableListener {
-                it.getTransformMatrix(mCameraMatrix)
-                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-                mFrameIds?.let { frameIds ->
-                    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameIds[0])
-                    mLuminanceFilter.setScaleMatrix(mScale)
-                    mLuminanceFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
-                    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+//        DLog.i("surfaceCreated")
+        if (!mGLHandler.isDead) {
+            mGLHandler.post {
+//                DLog.i("surfaceCreated mGLHandler post")
+                mEglHelper.initEgl(null, holder!!.surface)
+                mTextureId = FGLUtils.createOESTexture()
+                mPreviewFilter = PreviewFilter(context)
+                mLuminanceFilter = LuminanceFilter(context)
+                mCamera.open(mTextureId)
+                mCamera.getSurfaceTexture()?.setOnFrameAvailableListener {
+                    mCamera.getSurfaceTexture()?.let { surfaceTexture ->
+                        surfaceTexture.getTransformMatrix(mCameraMatrix)
+                        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+                        mFrameIds?.let { frameIds ->
+                            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameIds[0])
+                            mLuminanceFilter?.setScaleMatrix(mScale)
+                            mLuminanceFilter?.onDraw(
+                                mTextureId,
+                                0,
+                                0,
+                                mWidth,
+                                mHeight,
+                                mCameraMatrix
+                            )
+                            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+                        }
+                        //
+                        mPreviewFilter?.setScaleMatrix(mScale)
+                        mPreviewFilter?.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
+                        mEglHelper.swapBuffers()
+                        surfaceTexture.updateTexImage()
+                        //
+                        readScanDataFromGL()
+                    }
                 }
-                //
-                mPreviewFilter.setScaleMatrix(mScale)
-                mPreviewFilter.onDraw(mTextureId, 0, 0, mWidth, mHeight, mCameraMatrix)
-                mEglHelper.swapBuffers()
-                it.updateTexImage()
-                //
-                readScanDataFromGL()
-            }
-            mPixelHandler.post {
-                mPixelTexture = FGLUtils.createOESTexture()
-                mPixelSurfaceTexture = SurfaceTexture(mPixelTexture)
-                mPixelSurface = Surface(mPixelSurfaceTexture)
-                mPixelEglHelper.initEgl(mEglHelper.eglContext, mPixelSurface)
-                mPixelFilter = PixelFilter(context)
-                GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
-                mPixelSurfaceTexture?.setOnFrameAvailableListener {
-                    it.updateTexImage()
+                if (!mPixelHandler.isDead) {
+                    mPixelHandler.post {
+//                        DLog.i("surfaceCreated mPixelHandler post")
+                        mPixelTexture = FGLUtils.createOESTexture()
+                        mPixelSurfaceTexture = SurfaceTexture(mPixelTexture)
+                        mPixelSurface = Surface(mPixelSurfaceTexture)
+                        mPixelEglHelper.initEgl(mEglHelper.eglContext, mPixelSurface)
+                        mPixelFilter = PixelFilter(context)
+                        GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
+                        mPixelSurfaceTexture?.setOnFrameAvailableListener {
+                            mPixelSurfaceTexture?.updateTexImage()
+                        }
+                        mPixelHandler.isPixelCreate = true
+                    }
                 }
             }
         }
@@ -125,28 +141,41 @@ class GLCameraManager {
         mWidth = width
         mHeight = height
         mScale = 1.0f
-        mGLHandler.post {
-            GLES20.glViewport(0, 0, width, height)
-            GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-            mFrameIds?.let {
-                FGLUtils.deleteFBO(it)
-            }
-            mFrameIds = FGLUtils.createFBO(width, height)
-            //
-            mCamera.surfaceChange(width, height)
-            val cameraSize = mCamera.getCameraSize()
-//            DLog.i("cameraSize  width: ${cameraSize.width} height: ${cameraSize.height}")
-            mPreviewFilter.onChange(cameraSize.width, cameraSize.height, width, height)
-            mLuminanceFilter.onChange(cameraSize.width, cameraSize.height, width, height)
-            //
-            mPixelHandler.post {
-                mPixelFilter.onChange(cameraSize.width, cameraSize.height, mWidth, mHeight)
-                mPixelSurfaceTexture?.setDefaultBufferSize(mWidth, mHeight)
-                GLES20.glViewport(0, 0, mWidth, mHeight)
+//        DLog.i("onSurfaceChanged")
+        if (!mGLHandler.isDead) {
+            mGLHandler.post {
+//                DLog.i("onSurfaceChanged mGLHandler post")
+                GLES20.glViewport(0, 0, width, height)
                 GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-                mIsPixelCreate = true
+                mFrameIds?.let {
+                    FGLUtils.deleteFBO(it)
+                }
+                mFrameIds = FGLUtils.createFBO(width, height)
+                //
+                mCamera.surfaceChange(width, height)
+                val cameraSize = mCamera.getCameraSize()
+//            DLog.i("cameraSize  width: ${cameraSize.width} height: ${cameraSize.height}")
+                mPreviewFilter?.onChange(cameraSize.width, cameraSize.height, width, height)
+                mLuminanceFilter?.onChange(cameraSize.width, cameraSize.height, width, height)
+                //
+                if (!mPixelHandler.isDead) {
+                    mPixelHandler.post {
+                        if (mPixelHandler.isPixelCreate) {
+//                            DLog.i("onSurfaceChanged mPixelHandler post")
+                            mPixelFilter?.onChange(
+                                cameraSize.width,
+                                cameraSize.height,
+                                mWidth,
+                                mHeight
+                            )
+                            mPixelSurfaceTexture?.setDefaultBufferSize(mWidth, mHeight)
+                            GLES20.glViewport(0, 0, mWidth, mHeight)
+                            GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+                            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+                        }
+                    }
+                }
             }
         }
     }
@@ -155,26 +184,40 @@ class GLCameraManager {
      * surface关闭，释放资源，删除纹理
      */
     fun surfaceDestroyed() {
-        mIsPixelCreate = false
+//        DLog.i("surfaceDestroyed")
+        mPixelHandler.isPixelCreate = false
         mPixelHandler.buffer = null
         mPixelSurfaceTexture?.setOnFrameAvailableListener(null)
-        mPixelHandler.post {
-            FGLUtils.deleteTexture(mPixelTexture)
-            mPixelFilter.onDestroy()
-            mPixelEglHelper.destroyEgl()
-            mPixelSurfaceTexture?.release()
-            mPixelSurface?.release()
-        }
-        mGLHandler.post {
-            mFrameIds?.let {
-                FGLUtils.deleteFBO(it)
+        mPixelSurfaceTexture = null
+        if (!mPixelHandler.isDead) {
+            mPixelHandler.post {
+                if (mPixelHandler.isPixelCreate) {
+//                    DLog.i("surfaceDestroyed mPixelHandler post")
+                    if (mPixelTexture != -1) {
+                        FGLUtils.deleteTexture(mPixelTexture)
+                        mPixelTexture = -1
+                    }
+                    mPixelFilter?.onDestroy()
+                    mPixelEglHelper.destroyEgl()
+                    mPixelSurfaceTexture?.release()
+                    mPixelSurface?.release()
+                    mPixelSurface = null
+                }
             }
-            mFrameIds = null
-            FGLUtils.deleteTexture(mTextureId)
-            mCamera.close()
-            mPreviewFilter.onDestroy()
-            mLuminanceFilter.onDestroy()
-            mEglHelper.destroyEgl()
+        }
+        if (!mGLHandler.isDead) {
+            mGLHandler.post {
+//                DLog.i("surfaceDestroyed mGLHandler post")
+                mFrameIds?.let {
+                    FGLUtils.deleteFBO(it)
+                }
+                mFrameIds = null
+                FGLUtils.deleteTexture(mTextureId)
+                mCamera.close()
+                mPreviewFilter?.onDestroy()
+                mLuminanceFilter?.onDestroy()
+                mEglHelper.destroyEgl()
+            }
         }
     }
 
@@ -182,9 +225,17 @@ class GLCameraManager {
      * 资源释放，camera关闭，GL线程退出，解码线程推出
      */
     fun destroy() {
+//        DLog.i("destroy >>>")
         mCamera.release()
-        mGLThread.quit()
-        mPixelThread.quit()
+        // 保证post执行完退出
+        mGLHandler.post {
+            mGLHandler.isDead = true
+            mGLThread.quit()
+        }
+        mPixelHandler.post {
+            mPixelHandler.isDead = true
+            mPixelThread.quit()
+        }
         mGLThread.join()
 //        mPixelThread.join()
     }
@@ -215,43 +266,42 @@ class GLCameraManager {
      */
     private fun readScanDataFromGL() {
         mPixelLock.tryLock()
-        mPixelHandler.post {
-            if (mIsPixelCreate) {
-                if (mFrameIds != null) {
-                    mPixelFilter.onDraw(mFrameIds!![1], 0, 0, mWidth, mHeight, null)
-                }
-                mPixelEglHelper.swapBuffers()
-                //
-                try {
-                    mPixelLock.lock()
-                    if (mPixelHandler.width != 0 && mPixelHandler.height != 0) {
-                        mPixelHandler.buffer?.let { byteBuffer ->
-                            //                        val start = System.currentTimeMillis()
-                            byteBuffer.position(0)
-                            GLES20.glReadPixels(
-                                mPixelHandler.left,
-                                mPixelHandler.top,
-                                mPixelHandler.width,
-                                mPixelHandler.height,
-                                GLES20.GL_RGBA,
-                                GLES20.GL_UNSIGNED_BYTE,
-                                byteBuffer
-                            )
-//                    DLog.d("mPixelHandler cost time: ${System.currentTimeMillis() - start}")
-                            byteBuffer.rewind()
-                            if (onReadScanData != null && mPixelHandler.source != null) {
-                                onReadScanData!!(
+        if (!mPixelHandler.isDead) {
+            mPixelHandler.post {
+                if (mPixelHandler.isPixelCreate) {
+                    if (mFrameIds != null) {
+                        mPixelFilter?.onDraw(mFrameIds!![1], 0, 0, mWidth, mHeight, null)
+                    }
+                    mPixelEglHelper.swapBuffers()
+                    //
+                    try {
+                        mPixelLock.lock()
+                        if (mPixelHandler.width != 0 && mPixelHandler.height != 0) {
+                            mPixelHandler.buffer?.let { byteBuffer ->
+                                byteBuffer.position(0)
+                                GLES20.glReadPixels(
+                                    mPixelHandler.left,
+                                    mPixelHandler.top,
                                     mPixelHandler.width,
                                     mPixelHandler.height,
-                                    mPixelHandler.source!!,
+                                    GLES20.GL_RGBA,
+                                    GLES20.GL_UNSIGNED_BYTE,
                                     byteBuffer
                                 )
+                                byteBuffer.rewind()
+                                if (onReadScanData != null && mPixelHandler.source != null) {
+                                    onReadScanData!!(
+                                        mPixelHandler.width,
+                                        mPixelHandler.height,
+                                        mPixelHandler.source!!,
+                                        byteBuffer
+                                    )
+                                }
                             }
-//                    DLog.d("qr cost time: ${System.currentTimeMillis() - start}")
                         }
+                    } finally {
+                        mPixelLock.unlock()
                     }
-                } finally {
-                    mPixelLock.unlock()
                 }
             }
         }

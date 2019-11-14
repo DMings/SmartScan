@@ -17,6 +17,9 @@ class PixelHandler(looper: Looper) : Handler(looper) {
     var top: Int = 0
     var width: Int = 0
     var height: Int = 0
+    //
+    var isPixelCreate = false
+    var isDead = false
 
     fun setConfigure(
         smartScanParameter: SmartScanParameter,
