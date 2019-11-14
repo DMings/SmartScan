@@ -27,7 +27,6 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private var mScannerLineRect: RectF? = null
 
     private var mAnimator: ValueAnimator? = null
-    private var mAnimatorDuration: Long = 3000
     private var mAnimatedFraction: Float = 0f
     private var mScanLineMoveHeight: Float = 0f
 
@@ -96,7 +95,8 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
             if (mAnimator != null) {
                 mAnimator!!.removeAllUpdateListeners()
             }
-            if (ovalRect.height() > 0) {
+            val scanLineTime = smartScanParameter.scanLineTime?:0
+            if (ovalRect.height() > 0 && scanLineTime > 0) {
                 mAnimator = ValueAnimator.ofFloat(0f, rect.height().toFloat())
             }
             mAnimator?.let { animator ->
@@ -110,7 +110,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
                     )
                 }
                 animator.cancel()
-                animator.duration = mAnimatorDuration
+                animator.duration = scanLineTime.toLong()
                 animator.repeatMode = ValueAnimator.RESTART
                 animator.repeatCount = ValueAnimator.INFINITE
                 animator.start()

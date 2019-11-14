@@ -16,9 +16,10 @@
         <attr name="scanCornerSize" format="dimension" />
         <attr name="scanCornerThick" format="dimension" />
         <attr name="scanLineWidth" format="dimension" />
+        <attr name="scanLineColor" format="color" />
+        <attr name="scanLineTime" format="integer" />
         <attr name="scanFrameLineWidth" format="dimension" />
         <attr name="scanFrameLineColor" format="color" />
-        <attr name="scanLineColor" format="color" />
         <attr name="scanCornerColor" format="color" />
         <attr name="disableScale" format="boolean" />
         <attr name="enableBeep" format="boolean" />

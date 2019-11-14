@@ -40,6 +40,8 @@ class SmartScanParameter {
     var scanLineColor: Int? = null
     // 扫描线宽度大小
     var scanLineWidth: Float = 0f
+    // 扫描线时间,单位毫秒
+    var scanLineTime: Int? = null
     // 扫描框的细线宽度，一般1px
     var scanFrameLineWidth: Float? = null
     // 扫描框的细线颜色
