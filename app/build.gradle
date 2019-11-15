@@ -1,7 +1,5 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
 
 android {
@@ -11,7 +9,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 28
         versionCode 1
-        versionName "0.0.2"
+        versionName "1.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -24,10 +22,9 @@ android {
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
             def buildTypeName = variant.buildType.name
-            def versionName = defaultConfig.versionName
             def outputFile = output.outputFile
             if (outputFile != null && outputFile.name.endsWith('.apk')) {
-                def fileName = "smart_scan_${buildTypeName}_v${versionName}.apk"
+                def fileName = "smart_scan_${buildTypeName}.apk"
                 outputFileName = fileName
             }
         }

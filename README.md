@@ -1,8 +1,8 @@
 ## SmartScan
 
-[**SmartScan**](https://github.com/DMings/SmartScan)运用OpenGL从零打造一个依赖极低、高灵活、快速预览不变形ZXing扫码库，实现思路写在最后，喜欢可以看下去。
+[**SmartScan**](https://github.com/DMings/SmartScan)运用OpenGL从零打造一个依赖极低、高灵活、快速预览不变形ZXing扫码库，实现思路写在最后，喜欢的可以看下去。
 
- - 下面是演示效果，可直接下载试试 [演示apk位置](https://github.com/DMings/SmartScan/blob/master/demosrc/)
+ - 下面是演示效果，可直接下载试试 [演示apk](https://github.com/DMings/SmartScan/blob/master/demosrc/smart_scan_debug.apk)
 
 ![旋转扫码演示](https://github.com/DMings/SmartScan/blob/master/demosrc/rotation_scan_480.gif)
 ![扫描途中变换参数](https://github.com/DMings/SmartScan/blob/master/demosrc/change_scan_480.gif)
@@ -19,13 +19,17 @@
 - **快速预览不变形**
 1. 为提高识别速度，针对一般扫码只用到二维码，也就是QR码，所以二维码部分仅保留QR识别，默认也仅开启QR识别。一维码种类较多，这里也提供，若需要仅使用一维码或二维码一维码同时使用，也提供相应的属性供设置
 2. 不必考虑是否全屏，保证**预览图像不变形**，处理好**图像旋转**问题，包括activity旋转的自动销毁创建问题、配置 android:configChanges="keyboardHidden|orientation|screenSize" 的时候，旋转不销毁问题、旋转180度surfaceChange无法监听问题
-- **该库使用方式：**
+
+- **该库使用方式（Kotlin Java）：**
 
 在build.gradle加入依赖
+
 ```
-implementation 'com.dming.glScan:smartscan:0.0.2'
+implementation 'com.dming.glScan:smartscan:0.0.3'
 ```
+
 若引用不上可在项目的build.gradle加上maven仓库地址，如下：
+
 ```
 allprojects {
     repositories {
@@ -35,12 +39,14 @@ allprojects {
     }
 }
 ```
+
 扫描框、扫描线、背景等基础UI已实现，若没有需求，开箱即用；若有定制，按需设置参数即可
 
 xml创建：
+
 ```
 <com.dming.glScan.SmartScanView
-  android:id="@+id/glScanView"
+  android:id="@+id/smartScanView"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
   app:scanPercentTopOffset="0.2"
@@ -49,45 +55,92 @@ xml创建：
   app:enableFlashlightBtn="true"
   />
 ```
-代码直接创建：
+
+代码直接创建(Kotlin)：
+
 ```
-val glScanView = SmartScanView(this)
+val smartScanView = SmartScanView(this)
 val smartScanParameter = SmartScanParameter()
 smartScanParameter.apply {
     this.scanPercentWidth = 0.65f
     this.scanPercentHeight = 0.65f
     this.scanPercentTopOffset = 0.2f
-    this.scanMustSquare = true
     this.enableFlashlightBtn = true
 }
-glScanView.init(smartScanParameter)
+smartScanView.init(smartScanParameter)
 ```
-动态改变配置：
+
+代码直接创建(Java)：
+
+```
+SmartScanView smartScanView = new SmartScanView(this);
+SmartScanParameter smartScanParameter = new SmartScanParameter();
+smartScanParameter.setScanPercentWidth(0.65f);
+smartScanParameter.setScanPercentHeight(0.65f);
+smartScanParameter.setScanPercentTopOffset(0.2f);
+smartScanParameter.setEnableFlashlightBtn(true);
+smartScanView.init(smartScanParameter);
+```
+
+动态改变配置(Kotlin)：
+
 ```
 val oneDP = TypedValue.applyDimension(
     TypedValue.COMPLEX_UNIT_DIP, 1f,
     this.resources.displayMetrics
 )
-val smartScanParameter = glScanView.getGLScanParameter()
+val smartScanParameter = smartScanView.getSmartScanParameter()
 smartScanParameter.scanTopOffset = 80 * oneDP
 smartScanParameter.scanWidth = 300 * oneDP
 smartScanParameter.scanHeight = 300 * oneDP
 smartScanParameter.scanLineWidth = 6 * oneDP
 smartScanParameter.onlyOneDCode = false
 smartScanParameter.enableFlashlightBtn = true
-glScanView.updateConfigure(smartScanParameter)    
+smartScanView.updateConfigure(smartScanParameter)    
 ```
-监听结果：
+
+动态改变配置(Java)：
 
 ```
-glScanView.setOnResultOnceListener {
-  Toasty.success(this, "result: $it", Toast.LENGTH_LONG).show()
-}
+float oneDP = TypedValue.applyDimension(
+    TypedValue.COMPLEX_UNIT_DIP, 1f,
+    this.getResources().getDisplayMetrics()
+);
+SmartScanParameter smartScanParameter = smartScanView.getSmartScanParameter();
+smartScanParameter.setScanTopOffset(80 * oneDP);
+smartScanParameter.setScanWidth(300 * oneDP);
+smartScanParameter.setScanHeight(300 * oneDP);
+smartScanParameter.setScanLineWidth(6 * oneDP);
+smartScanParameter.setOnlyOneDCode(false);
+smartScanParameter.setEnableFlashlightBtn(true);
+smartScanView.updateConfigure(smartScanParameter);
 ```
-监听扫描框的位置变化，实现自定义UI重要监听器：
+
+监听结果(Kotlin)：
 
 ```
-glScanView.setScanViewChangeListener(object : OnScanViewListener {
+smartScanView.setOnResultOnceListener(object : OnResultListener {
+    override fun onResult(result: Result) {
+        Toast.makeText(this@JavaCreateActivity,"result: ${result.text}",Toast.LENGTH_SHORT).show()
+    }
+})
+```
+
+监听结果(Java)：
+
+```
+smartScanView.setOnResultOnceListener(new OnResultListener() {
+    @Override
+    public void onResult(Result result) {
+        Toast.makeText(JavaCreateActivity.this,"result: "+result.getText(),Toast.LENGTH_SHORT).show();
+    }
+});
+```
+
+监听扫描框的位置变化，实现自定义UI重要监听器(Kotlin)：
+
+```
+smartScanView.setScanViewChangeListener(object : OnScanViewListener {
    // surface创建的时候回调
    override fun onCreate() {
    }
@@ -99,6 +152,26 @@ glScanView.setScanViewChangeListener(object : OnScanViewListener {
    }
 })
 ```
+
+监听扫描框的位置变化，实现自定义UI重要监听器(Java)：
+
+```
+smartScanView.setScanViewChangeListener(new OnScanViewListener() {
+    // surface创建的时候回调
+    @Override
+    public void onCreate() {
+    }
+    // 扫描窗口位置变化即回调
+    @Override
+    public void onChange(Rect rect) {
+    }
+    // surface销毁的时候回调
+    @Override
+    public void onDestroy() {
+    }
+});
+```
+
 - 参数配置大全：
 
 ```
@@ -137,6 +210,8 @@ class SmartScanParameter {
     var scanLineColor: Int? = null
     // 扫描线宽度大小
     var scanLineWidth: Float = 0f
+    // 扫描线时间,单位毫秒
+    var scanLineTime: Int? = null
     // 扫描框的细线宽度，一般1px
     var scanFrameLineWidth: Float? = null
     // 扫描框的细线颜色
@@ -169,9 +244,10 @@ XML参数也是同名，用法与上相同
     <attr name="scanCornerSize" format="dimension" />
     <attr name="scanCornerThick" format="dimension" />
     <attr name="scanLineWidth" format="dimension" />
+    <attr name="scanLineColor" format="color" />
+    <attr name="scanLineTime" format="integer" />
     <attr name="scanFrameLineWidth" format="dimension" />
     <attr name="scanFrameLineColor" format="color" />
-    <attr name="scanLineColor" format="color" />
     <attr name="scanCornerColor" format="color" />
     <attr name="disableScale" format="boolean" />
     <attr name="enableBeep" format="boolean" />
