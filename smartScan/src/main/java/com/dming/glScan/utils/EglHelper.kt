@@ -1,7 +1,6 @@
 package com.dming.glScan.utils
 
 import android.opengl.EGL14
-import android.view.Surface
 import javax.microedition.khronos.egl.*
 
 /**
@@ -26,7 +25,7 @@ class EglHelper {
     /**
      * 初始化EGL环境
      */
-    fun initEgl(eglContext: EGLContext?, surface: Surface?) {
+    fun initEgl(eglContext: EGLContext?, surface: Any?) {
         //1. 得到Egl实例
         mEgl = EGLContext.getEGL() as EGL10
         mEgl?.let { egl ->

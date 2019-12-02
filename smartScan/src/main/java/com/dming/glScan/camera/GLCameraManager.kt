@@ -17,6 +17,7 @@ import com.dming.glScan.utils.FGLUtils
 import com.dming.glScan.zxing.GLRGBLuminanceSource
 import com.dming.glScan.zxing.PixelHandler
 import java.nio.ByteBuffer
+import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 
 /**
@@ -42,7 +43,6 @@ class GLCameraManager {
     //
     private val mPixelEglHelper = EglHelper()
 
-    private var mPixelSurface: Surface? = null
     private var mPixelSurfaceTexture: SurfaceTexture? = null
     //
     private var mFrameIds: IntArray? = null
@@ -120,8 +120,7 @@ class GLCameraManager {
 //                        DLog.i("surfaceCreated mPixelHandler post")
                         mPixelTexture = FGLUtils.createOESTexture()
                         mPixelSurfaceTexture = SurfaceTexture(mPixelTexture)
-                        mPixelSurface = Surface(mPixelSurfaceTexture)
-                        mPixelEglHelper.initEgl(mEglHelper.eglContext, mPixelSurface)
+                        mPixelEglHelper.initEgl(mEglHelper.eglContext, mPixelSurfaceTexture)
                         mPixelFilter = PixelFilter(context)
                         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
                         mPixelSurfaceTexture?.setOnFrameAvailableListener {
@@ -200,8 +199,6 @@ class GLCameraManager {
                     mPixelFilter?.onDestroy()
                     mPixelEglHelper.destroyEgl()
                     mPixelSurfaceTexture?.release()
-                    mPixelSurface?.release()
-                    mPixelSurface = null
                 }
             }
         }
