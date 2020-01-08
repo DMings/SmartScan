@@ -73,14 +73,21 @@ class Camera1 : BaseCamera(), ICamera {
     override fun open(textureId: Int) {
         mSurfaceTexture = SurfaceTexture(textureId)
 //        val start = System.currentTimeMillis()
-        mCamera = Camera.open(mCameraId)
-        mCameraParameters = mCamera!!.parameters
-        mFlashModes = mCameraParameters.supportedFlashModes
-        mPreviewSizes.clear()
-        for (size in mCameraParameters.supportedPreviewSizes) {
-            mPreviewSizes.add(CameraSize(size.width, size.height))
+        mCamera = try {
+            Camera.open(mCameraId)
+        } catch (e: Throwable) {
+            DLog.i("Camera.open error")
+            null
         }
-        mCamera?.setPreviewTexture(mSurfaceTexture)
+        mCamera?.let {
+            mCameraParameters = it.parameters
+            mFlashModes = mCameraParameters.supportedFlashModes
+            mPreviewSizes.clear()
+            for (size in mCameraParameters.supportedPreviewSizes) {
+                mPreviewSizes.add(CameraSize(size.width, size.height))
+            }
+            it.setPreviewTexture(mSurfaceTexture)
+        }
 //        DLog.d("openCamera cost time: ${System.currentTimeMillis() - start}")
     }
 
@@ -176,12 +183,16 @@ class Camera1 : BaseCamera(), ICamera {
      */
     override fun setFlashLight(on: Boolean): Boolean {
         mCamera?.let {
-            val mode =
-                if (on) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
-            if (mFlashModes != null && mFlashModes!!.contains(mode)) {
-                mCameraParameters.flashMode = mode
-                it.parameters = mCameraParameters
-                return true
+            try {
+                val mode =
+                    if (on) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
+                if (mFlashModes != null && mFlashModes!!.contains(mode)) {
+                    mCameraParameters.flashMode = mode
+                    it.parameters = mCameraParameters
+                    return true
+                }
+            } catch (ex: Throwable) {
+                DLog.i("camera parameters error")
             }
         }
         return false

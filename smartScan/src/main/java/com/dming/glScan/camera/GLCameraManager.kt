@@ -4,20 +4,17 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
 import android.os.HandlerThread
-import android.view.Surface
 import android.view.SurfaceHolder
 import com.dming.glScan.SmartScanParameter
 import com.dming.glScan.filter.IShader
 import com.dming.glScan.filter.LuminanceFilter
 import com.dming.glScan.filter.PixelFilter
 import com.dming.glScan.filter.PreviewFilter
-import com.dming.glScan.utils.DLog
 import com.dming.glScan.utils.EglHelper
 import com.dming.glScan.utils.FGLUtils
 import com.dming.glScan.zxing.GLRGBLuminanceSource
 import com.dming.glScan.zxing.PixelHandler
 import java.nio.ByteBuffer
-import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 
 /**
@@ -83,7 +80,7 @@ class GLCameraManager {
 //        DLog.i("surfaceCreated")
         if (!mGLHandler.isDead) {
             mGLHandler.post {
-//                DLog.i("surfaceCreated mGLHandler post")
+                //                DLog.i("surfaceCreated mGLHandler post")
                 mEglHelper.initEgl(null, holder!!.surface)
                 mTextureId = FGLUtils.createOESTexture()
                 mPreviewFilter = PreviewFilter(context)
@@ -117,7 +114,7 @@ class GLCameraManager {
                 }
                 if (!mPixelHandler.isDead) {
                     mPixelHandler.post {
-//                        DLog.i("surfaceCreated mPixelHandler post")
+                        //                        DLog.i("surfaceCreated mPixelHandler post")
                         mPixelTexture = FGLUtils.createOESTexture()
                         mPixelSurfaceTexture = SurfaceTexture(mPixelTexture)
                         mPixelEglHelper.initEgl(mEglHelper.eglContext, mPixelSurfaceTexture)
@@ -143,7 +140,7 @@ class GLCameraManager {
 //        DLog.i("onSurfaceChanged")
         if (!mGLHandler.isDead) {
             mGLHandler.post {
-//                DLog.i("onSurfaceChanged mGLHandler post")
+                //                DLog.i("onSurfaceChanged mGLHandler post")
                 GLES20.glViewport(0, 0, width, height)
                 GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
@@ -204,7 +201,7 @@ class GLCameraManager {
         }
         if (!mGLHandler.isDead) {
             mGLHandler.post {
-//                DLog.i("surfaceDestroyed mGLHandler post")
+                //                DLog.i("surfaceDestroyed mGLHandler post")
                 mFrameIds?.let {
                     FGLUtils.deleteFBO(it)
                 }

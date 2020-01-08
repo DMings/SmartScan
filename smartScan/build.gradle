@@ -16,7 +16,7 @@ publish {
     userOrg = 'dming'
     groupId = 'com.dming.glScan'
     artifactId = 'smartscan'
-    publishVersion = '0.0.3'
+    publishVersion = '0.0.4'
     desc = '运用OpenGL从零打造一个依赖极低、高灵活、快速预览不变形ZXing扫码库'
     website = 'https://github.com/DMings/SmartScan'
 }
@@ -27,7 +27,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 28
         versionCode 1
-        versionName "0.0.3"
+        versionName "0.0.4"
     }
     buildTypes {
         release {
