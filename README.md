@@ -25,7 +25,7 @@
 在build.gradle加入依赖
 
 ```
-implementation 'com.dming.glScan:smartscan:0.0.3'
+implementation 'com.dming.glScan:smartscan:0.0.4'
 ```
 
 若引用不上可在项目的build.gradle加上maven仓库地址，如下：
