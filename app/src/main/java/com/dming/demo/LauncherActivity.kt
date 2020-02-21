@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.widget.Toast
 
 class LauncherActivity : AppCompatActivity() {
 
@@ -33,6 +34,8 @@ class LauncherActivity : AppCompatActivity() {
         if (requestCode == 666 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startActivity(Intent(this, ScanMainActivity::class.java))
             finish()
+        }else {
+            Toast.makeText(this, "请授予摄像头权限，否则无法正常使用", Toast.LENGTH_LONG).show()
         }
     }
 }
