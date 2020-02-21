@@ -1,14 +1,18 @@
 package com.dming.glScan
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Rect
+import android.os.Build
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.ScaleGestureDetector
 import android.view.SurfaceHolder
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.Toast
 import com.dming.glScan.camera.GLCameraManager
 import com.dming.glScan.zxing.GLRGBLuminanceSource
 import com.dming.glScan.zxing.OnGrayImgListener
@@ -55,6 +59,15 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
         attrs,
         defStyleAttr
     ) {
+        if (context is Activity) {
+            val activity = context as Activity;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (activity.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
+                    Toast.makeText(activity, "请授予摄像头权限，否则无法正常使用", Toast.LENGTH_LONG).show()
+                    return
+                }
+            }
+        }
         if (attrs != null) {
             handleAttribute(attrs)
             init(mSmartScanParameter)

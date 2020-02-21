@@ -39,10 +39,12 @@ open class BaseCamera {
                 cSize = size
             }
         }
-        if (cSize == null) {
+        if (cSize == null && lessThanView.size > 0) {
             cSize = lessThanView[0]
         }
-        mCameraSize =  cSize
+        cSize?.let {
+            mCameraSize =  cSize
+        }
     }
 
 }

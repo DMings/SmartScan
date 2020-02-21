@@ -7,7 +7,7 @@ class CameraSize : Comparable<CameraSize> {
 
     val width: Int
     val height: Int
-    lateinit var srcSize: CameraSize
+    var srcSize: CameraSize? = null
 
     constructor(size1: Int, size2: Int) {
         this.width = size1

@@ -18,29 +18,29 @@ import com.dming.glScan.utils.DLog
 class Camera1 : BaseCamera(), ICamera {
     private var mCameraId: Int = 0
     private var mCamera: Camera? = null
-    private lateinit var mCameraParameters: Camera.Parameters
+    private var mCameraParameters: Camera.Parameters? = null
     private val mCameraInfo = Camera.CameraInfo()
     private var mSurfaceTexture: SurfaceTexture? = null
     private var mContext: Context? = null
     private var mFlashModes: List<String>? = null
     //
     private var mOrientationListener: OrientationEventListener? = null
-    private lateinit var mDisplay: Display
+    private var mDisplay: Display? = null
     private var mRotation = 0
 
     override fun init(context: Context) {
         mContext = context
         mDisplay =
             (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
-        mRotation = mDisplay.rotation
+        mRotation = (mDisplay?.rotation ?: 0)
         val orientationEventListener = object : OrientationEventListener(
             context,
             SensorManager.SENSOR_DELAY_NORMAL
         ) {
             override fun onOrientationChanged(orientation: Int) {
-                if (mRotation != mDisplay.rotation) {
+                if (mRotation != (mDisplay?.rotation ?: 0)) {
                     // 旋转了180的情形，并不会走 surfaceChange 需要手动处理
-                    if (kotlin.math.abs(mRotation - mDisplay.rotation) == 2) {
+                    if (kotlin.math.abs(mRotation - (mDisplay?.rotation ?: 0)) == 2) {
                         adjustCameraParameters(mViewWidth, mViewHeight)
                     }
 //                    DLog.i("Orientation changed to ${mDisplay.rotation}")
@@ -81,10 +81,12 @@ class Camera1 : BaseCamera(), ICamera {
         }
         mCamera?.let {
             mCameraParameters = it.parameters
-            mFlashModes = mCameraParameters.supportedFlashModes
+            mFlashModes = mCameraParameters?.supportedFlashModes
             mPreviewSizes.clear()
-            for (size in mCameraParameters.supportedPreviewSizes) {
-                mPreviewSizes.add(CameraSize(size.width, size.height))
+            mCameraParameters?.let { cameraParameters ->
+                for (size in cameraParameters.supportedPreviewSizes) {
+                    mPreviewSizes.add(CameraSize(size.width, size.height))
+                }
             }
             it.setPreviewTexture(mSurfaceTexture)
         }
@@ -125,7 +127,7 @@ class Camera1 : BaseCamera(), ICamera {
             it.stopPreview()
             it.setDisplayOrientation(degree)
         }
-        mCameraParameters.setPreviewSize(size.width, size.height)
+        mCameraParameters?.setPreviewSize(size?.width ?: 0, size?.height ?: 0)
         setAutoFocusInternal()
         mCamera?.let {
             it.parameters = mCameraParameters
@@ -137,7 +139,7 @@ class Camera1 : BaseCamera(), ICamera {
      * 获取根据屏幕处理后的旋转角度，矫正后的角度
      */
     private fun getCameraRotation(info: Camera.CameraInfo): Int {
-        mRotation = mDisplay.rotation
+        mRotation = mDisplay?.rotation ?: 0
         var degree = 0
         when (mRotation) {
             Surface.ROTATION_0 -> degree = 0
@@ -161,16 +163,18 @@ class Camera1 : BaseCamera(), ICamera {
      * 设置自动聚焦
      */
     private fun setAutoFocusInternal(): Boolean {
-        return if (mCamera != null) {
-            val modes = mCameraParameters.supportedFocusModes
-            when {
-                modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE) ->
-                    mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
-                modes.contains(Camera.Parameters.FOCUS_MODE_FIXED) ->
-                    mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_FIXED
-                modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY) ->
-                    mCameraParameters.focusMode = Camera.Parameters.FOCUS_MODE_INFINITY
-                else -> mCameraParameters.focusMode = modes[0]
+        return if (mCamera != null && mCameraParameters != null) {
+            mCameraParameters?.let {
+                val modes = it.supportedFocusModes
+                when {
+                    modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE) ->
+                        it.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
+                    modes.contains(Camera.Parameters.FOCUS_MODE_FIXED) ->
+                        it.focusMode = Camera.Parameters.FOCUS_MODE_FIXED
+                    modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY) ->
+                        it.focusMode = Camera.Parameters.FOCUS_MODE_INFINITY
+                    else -> it.focusMode = modes[0]
+                }
             }
             true
         } else {
@@ -187,7 +191,7 @@ class Camera1 : BaseCamera(), ICamera {
                 val mode =
                     if (on) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
                 if (mFlashModes != null && mFlashModes!!.contains(mode)) {
-                    mCameraParameters.flashMode = mode
+                    mCameraParameters?.flashMode = mode
                     it.parameters = mCameraParameters
                     return true
                 }
