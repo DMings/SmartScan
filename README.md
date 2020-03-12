@@ -276,9 +276,10 @@ stopDecode
 // 闪光灯开启关闭  
 setFlashLight  
 // 扫码过程中改变配置，如窗口大小，扫码类型等  
-updateConfigure
-// 获取camera对象
-getCamera
+updateConfigure  
+// 获取camera对象  
+getCamera  
+
 
 - **实现思路：**
 
