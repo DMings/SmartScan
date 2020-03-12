@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Rect
+import android.hardware.Camera
 import android.os.Build
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -520,6 +521,13 @@ class SmartScanView : FrameLayout, ScaleGestureDetector.OnScaleGestureListener {
      */
     fun getSmartScanParameter(): SmartScanParameter {
         return mSmartScanParameter
+    }
+
+    /**
+     * 获取camera对象
+     */
+    fun getCamera(): Camera? {
+        return mGLCameraManager.getCamera()
     }
 
     /**

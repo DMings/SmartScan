@@ -26,95 +26,110 @@ class EglHelper {
      * 初始化EGL环境
      */
     fun initEgl(eglContext: EGLContext?, surface: Any?) {
-        //1. 得到Egl实例
-        mEgl = EGLContext.getEGL() as EGL10
-        mEgl?.let { egl ->
+        try {
+            //1. 得到Egl实例
+            mEgl = EGLContext.getEGL() as EGL10
+            mEgl?.let { egl ->
 
-            //2. 得到默认的显示设备（就是窗口）
-            mEglDisplay = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY)
-            if (mEglDisplay === EGL10.EGL_NO_DISPLAY) {
-                throw RuntimeException("eglGetDisplay failed")
-            }
-            //3. 初始化默认显示设备
-            val version = IntArray(2)
-            if (!egl.eglInitialize(mEglDisplay, version)) {
-                throw RuntimeException("eglInitialize failed")
-            }
+                //2. 得到默认的显示设备（就是窗口）
+                mEglDisplay = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY)
+                if (mEglDisplay === EGL10.EGL_NO_DISPLAY) {
+                    throw RuntimeException("eglGetDisplay failed")
+                }
+                //3. 初始化默认显示设备
+                val version = IntArray(2)
+                if (!egl.eglInitialize(mEglDisplay, version)) {
+                    throw RuntimeException("eglInitialize failed")
+                }
 
-            //4. 设置显示设备的属性
-            val attributeList = intArrayOf(
-                EGL10.EGL_RED_SIZE,
-                mRedSize,
-                EGL10.EGL_GREEN_SIZE,
-                mGreenSize,
-                EGL10.EGL_BLUE_SIZE,
-                mBlueSize,
-                EGL10.EGL_ALPHA_SIZE,
-                mAlphaSize,
-                EGL10.EGL_DEPTH_SIZE,
-                mDepthSize,
-                EGL10.EGL_STENCIL_SIZE,
-                mStencilSize,
-                EGL10.EGL_RENDERABLE_TYPE,
-                mRenderType, //egl版本  2.0
-                EGL10.EGL_NONE
-            )
-
-
-            val numConfig = IntArray(1)
-            require(
-                egl.eglChooseConfig(
-                    mEglDisplay, attributeList, null, 1,
-                    numConfig
+                //4. 设置显示设备的属性
+                val attributeList = intArrayOf(
+                    EGL10.EGL_RED_SIZE,
+                    mRedSize,
+                    EGL10.EGL_GREEN_SIZE,
+                    mGreenSize,
+                    EGL10.EGL_BLUE_SIZE,
+                    mBlueSize,
+                    EGL10.EGL_ALPHA_SIZE,
+                    mAlphaSize,
+                    EGL10.EGL_DEPTH_SIZE,
+                    mDepthSize,
+                    EGL10.EGL_STENCIL_SIZE,
+                    mStencilSize,
+                    EGL10.EGL_RENDERABLE_TYPE,
+                    mRenderType, //egl版本  2.0
+                    EGL10.EGL_NONE
                 )
-            ) { "eglChooseConfig failed" }
-            val numConfigs = numConfig[0]
-            require(numConfigs > 0) { "No configs match configSpec" }
 
-            //5. 从系统中获取对应属性的配置
+
+                val numConfig = IntArray(1)
+                require(
+                    egl.eglChooseConfig(
+                        mEglDisplay, attributeList, null, 1,
+                        numConfig
+                    )
+                ) { "eglChooseConfig failed" }
+                val numConfigs = numConfig[0]
+                require(numConfigs > 0) { "No configs match configSpec" }
+
+                //5. 从系统中获取对应属性的配置
 //        val configs = arrayOfNulls<EGLConfig>(numConfigs)
-            val configs = Array<EGLConfig>(numConfigs) {
-                val e = object : EGLConfig() {}
-                e
-            }
-            require(
-                egl.eglChooseConfig(
-                    mEglDisplay, attributeList, configs, numConfigs,
-                    numConfig
-                )
-            ) { "eglChooseConfig#2 failed" }
+                val configs = Array<EGLConfig>(numConfigs) {
+                    val e = object : EGLConfig() {}
+                    e
+                }
+                require(
+                    egl.eglChooseConfig(
+                        mEglDisplay, attributeList, configs, numConfigs,
+                        numConfig
+                    )
+                ) { "eglChooseConfig#2 failed" }
 //        require(
 //            configs as? Array<EGLConfig> != null
 //        ) {
 //            "configs wrong"
 //        }
-            var eglConfig = chooseConfig(egl, mEglDisplay, configs)
-            if (eglConfig == null) {
-                eglConfig = configs[0]
-            }
+                var eglConfig = chooseConfig(egl, mEglDisplay, configs)
+                if (eglConfig == null) {
+                    eglConfig = configs[0]
+                }
 
-            //6. 创建EglContext
-            val contextAttr = intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE)
-            if (eglContext == null) {
-                this.eglContext =
-                    egl.eglCreateContext(mEglDisplay, eglConfig, EGL10.EGL_NO_CONTEXT, contextAttr)
-            } else {
-                this.eglContext =
-                    egl.eglCreateContext(mEglDisplay, eglConfig, eglContext, contextAttr)
-            }
+                //6. 创建EglContext
+                val contextAttr = intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE)
+                if (eglContext == null) {
+                    this.eglContext =
+                        egl.eglCreateContext(
+                            mEglDisplay,
+                            eglConfig,
+                            EGL10.EGL_NO_CONTEXT,
+                            contextAttr
+                        )
+                } else {
+                    this.eglContext =
+                        egl.eglCreateContext(mEglDisplay, eglConfig, eglContext, contextAttr)
+                }
 
-            //7. 创建渲染的Surface
-            mEglSurface = if (surface == null) {
-                EGL10.EGL_NO_SURFACE
-            } else {
-                egl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null)
-            }
-            //8. 绑定EglContext和Surface到显示设备中
-            if (mEglDisplay != null && mEglSurface != null && this.eglContext != null) {
-                if (!egl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, this.eglContext)) {
-                    throw RuntimeException("eglMakeCurrent fail")
+                //7. 创建渲染的Surface
+                mEglSurface = if (surface == null) {
+                    EGL10.EGL_NO_SURFACE
+                } else {
+                    egl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null)
+                }
+                //8. 绑定EglContext和Surface到显示设备中
+                if (mEglDisplay != null && mEglSurface != null && this.eglContext != null) {
+                    if (!egl.eglMakeCurrent(
+                            mEglDisplay,
+                            mEglSurface,
+                            mEglSurface,
+                            this.eglContext
+                        )
+                    ) {
+                        throw RuntimeException("eglMakeCurrent fail")
+                    }
                 }
             }
+        } catch (ex: Exception) {
+            mEgl = null
         }
     }
 
@@ -126,6 +141,10 @@ class EglHelper {
         } else {
             false
         }
+    }
+
+    fun isEGLCreate(): Boolean {
+        return mEgl != null
     }
 
     /**
@@ -151,8 +170,8 @@ class EglHelper {
                 egl.eglTerminate(mEglDisplay)
                 mEglDisplay = null
             }
-            mEgl = null
         }
+        mEgl = null
     }
 
     private fun chooseConfig(

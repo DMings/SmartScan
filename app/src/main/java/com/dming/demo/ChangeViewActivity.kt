@@ -18,7 +18,7 @@ class ChangeViewActivity : AppCompatActivity() {
             TypedValue.COMPLEX_UNIT_DIP, 1f,
             this.resources.displayMetrics
         )
-        smartScanView.setOnResultOnceListener(object : OnResultListener {
+        smartScanView.setOnResultListener(object : OnResultListener {
             override fun onResult(result: Result) {
                 Toasty.success(
                     this@ChangeViewActivity,

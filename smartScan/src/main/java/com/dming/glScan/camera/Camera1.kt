@@ -202,6 +202,11 @@ class Camera1 : BaseCamera(), ICamera {
         return false
     }
 
+    override fun getCamera(): Camera? {
+        return mCamera
+    }
+
+
     /**
      * 关闭资源释放
      */
@@ -210,6 +215,7 @@ class Camera1 : BaseCamera(), ICamera {
         mCamera?.release()
         mSurfaceTexture?.release()
         mSurfaceTexture = null
+        mCamera = null
     }
 
 }

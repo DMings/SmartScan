@@ -25,7 +25,7 @@
 在build.gradle加入依赖
 
 ```
-implementation 'com.dming.glScan:smartscan:0.0.5'
+implementation 'com.dming.glScan:smartscan:0.0.6'
 ```
 
 若引用不上可在项目的build.gradle加上maven仓库地址，如下：
@@ -276,7 +276,9 @@ stopDecode
 // 闪光灯开启关闭  
 setFlashLight  
 // 扫码过程中改变配置，如窗口大小，扫码类型等  
-updateConfigure  
+updateConfigure
+// 获取camera对象
+getCamera
 
 - **实现思路：**
 
