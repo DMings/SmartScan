@@ -9,7 +9,6 @@ import com.dming.glScan.OnScanViewListener
 import com.dming.glScan.zxing.OnGrayImgListener
 import com.dming.glScan.zxing.OnResultListener
 import com.google.zxing.Result
-import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.activity_test.*
 import java.nio.ByteBuffer
 
@@ -21,13 +20,13 @@ class TestActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_test)
-        smartScanView.setOnResultOnceListener(object : OnResultListener {
+        smartScanView.setOnResultListener(object : OnResultListener {
             override fun onResult(result: Result) {
-                Toasty.success(
+                Toasty.showText(
                     this@TestActivity,
                     "result: ${result.text}",
                     Toast.LENGTH_SHORT
-                ).show()
+                )
             }
         })
         smartScanView.setScanViewChangeListener(object : OnScanViewListener {

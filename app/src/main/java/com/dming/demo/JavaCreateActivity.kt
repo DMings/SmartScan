@@ -9,7 +9,6 @@ import com.dming.glScan.SmartScanParameter
 import com.dming.glScan.SmartScanView
 import com.dming.glScan.zxing.OnResultListener
 import com.google.zxing.Result
-import es.dmoral.toasty.Toasty
 
 class JavaCreateActivity : AppCompatActivity() {
 
@@ -27,11 +26,11 @@ class JavaCreateActivity : AppCompatActivity() {
 
         smartScanView.setOnResultOnceListener(object : OnResultListener {
             override fun onResult(result: Result) {
-                Toasty.success(
+                Toasty.showText(
                     this@JavaCreateActivity,
                     "result: ${result.text}",
                     Toast.LENGTH_SHORT
-                ).show()
+                )
                 finish()
             }
         })

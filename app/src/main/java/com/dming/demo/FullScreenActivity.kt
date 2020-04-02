@@ -8,7 +8,6 @@ import com.dming.glScan.OnScanViewListener
 import com.dming.glScan.zxing.OnResultListener
 import com.google.zxing.Result
 import com.gyf.immersionbar.ImmersionBar
-import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.activity_full_screen.*
 
 
@@ -24,11 +23,11 @@ class FullScreenActivity : AppCompatActivity() {
 
         smartScanView.setOnResultOnceListener(object : OnResultListener {
             override fun onResult(result: Result) {
-                Toasty.success(
+                Toasty.showText(
                     this@FullScreenActivity,
                     "result: ${result.text}",
                     Toast.LENGTH_SHORT
-                ).show()
+                )
                 finish()
             }
         })
