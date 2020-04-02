@@ -118,9 +118,9 @@ class GLCameraManager {
                         readScanDataFromGL()
                     }
                 }
+                mPixelTexture = FGLUtils.createOESTexture()
                 mPixelHandler?.post {
                     //              DLog.i("surfaceCreated mPixelHandler post")
-                    mPixelTexture = FGLUtils.createOESTexture()
                     mPixelSurfaceTexture = SurfaceTexture(mPixelTexture)
                     mPixelEglHelper.initEgl(mEglHelper.eglContext, mPixelSurfaceTexture)
                     if (mPixelEglHelper.isEGLCreate()) {
