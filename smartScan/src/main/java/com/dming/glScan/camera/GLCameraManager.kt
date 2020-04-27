@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.opengl.GLES20
-import android.os.Handler
 import android.os.HandlerThread
 import android.view.SurfaceHolder
 import com.dming.glScan.SmartScanParameter
@@ -26,8 +25,7 @@ class GLCameraManager {
     private val mCamera = Camera1()
     private val mCameraMatrix = FloatArray(16)
     // GL绘制线程
-    private var mGLThread: HandlerThread? = null
-    private var mGLHandler: Handler? = null
+    private var mGLHandler: CameraHandler? = null
     private var mPreviewFilter: IShader? = null
     private var mLuminanceFilter: IShader? = null
     private var mTextureId: Int = 0
@@ -59,18 +57,14 @@ class GLCameraManager {
      * 获取摄像头信息
      */
     fun init(context: Context) {
-        mGLThread = HandlerThread("GL")
         mPixelThread = HandlerThread("SCAN")
-        mGLThread
-        mGLThread?.let {
-            it.start()
-            mGLHandler = Handler(it.looper)
-        }
+        mGLHandler = CameraHandler.instance
+        mGLHandler?.create()
         mPixelThread?.let {
             it.start()
             mPixelHandler = PixelHandler(it.looper)
         }
-        mGLHandler?.post {
+        CameraHandler.instance.post {
             mCamera.init(context)
         }
     }
@@ -221,18 +215,16 @@ class GLCameraManager {
     fun destroy() {
 //        DLog.i("destroy >>>")
         mOnReadScanData = null
-        mCamera.release()
         // 保证post执行完退出
-        mGLHandler?.post {
-            mGLThread?.quit()
+        mGLHandler?.destroy {
+            mCamera.release()
         }
         mPixelHandler?.post {
             mPixelThread?.quit()
         }
-        mGLThread?.join() // GL线程一般不会堵塞，要等待结束，不然，再进入页面请求GL会出问题
-        //        mPixelThread.join() // 解码线程耗时严重，不能随意join
+//        mGLThread?.join() // GL线程一般不会堵塞，要等待结束，不然，再进入页面请求GL会出问题
+//        mPixelThread.join() // 解码线程耗时严重，不能随意join
         mGLHandler = null
-        mGLThread = null
         mPixelHandler = null
         mPixelThread = null
     }
