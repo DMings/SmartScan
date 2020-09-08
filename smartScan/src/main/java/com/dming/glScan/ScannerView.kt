@@ -95,7 +95,7 @@ class ScannerView @JvmOverloads constructor(context: Context, attrs: AttributeSe
             if (mAnimator != null) {
                 mAnimator!!.removeAllUpdateListeners()
             }
-            val scanLineTime = smartScanParameter.scanLineTime?:0
+            val scanLineTime = smartScanParameter.scanLineTime ?: 0
             if (ovalRect.height() > 0 && scanLineTime > 0) {
                 mAnimator = ValueAnimator.ofFloat(0f, rect.height().toFloat())
             }

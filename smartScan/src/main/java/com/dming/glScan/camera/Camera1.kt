@@ -23,6 +23,7 @@ class Camera1 : BaseCamera(), ICamera {
     private var mSurfaceTexture: SurfaceTexture? = null
     private var mContext: Context? = null
     private var mFlashModes: List<String>? = null
+
     //
     private var mOrientationListener: OrientationEventListener? = null
     private var mDisplay: Display? = null
@@ -73,11 +74,13 @@ class Camera1 : BaseCamera(), ICamera {
     override fun open(textureId: Int) {
         mSurfaceTexture = SurfaceTexture(textureId)
 //        val start = System.currentTimeMillis()
-        mCamera = try {
-            Camera.open(mCameraId)
-        } catch (e: Throwable) {
-            DLog.i("Camera.open error")
-            null
+        if (mCameraId != -1) {
+            mCamera = try {
+                Camera.open(mCameraId)
+            } catch (e: Throwable) {
+                DLog.i("Camera.open error")
+                null
+            }
         }
         mCamera?.let {
             mCameraParameters = it.parameters

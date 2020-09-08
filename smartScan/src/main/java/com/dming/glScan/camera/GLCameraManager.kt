@@ -5,6 +5,7 @@ import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.opengl.GLES20
 import android.os.HandlerThread
+import android.view.Surface
 import android.view.SurfaceHolder
 import com.dming.glScan.SmartScanParameter
 import com.dming.glScan.filter.IShader
@@ -24,26 +25,32 @@ import java.util.concurrent.locks.ReentrantLock
 class GLCameraManager {
     private val mCamera = Camera1()
     private val mCameraMatrix = FloatArray(16)
+
     // GL绘制线程
     private var mGLHandler: CameraHandler? = null
     private var mPreviewFilter: IShader? = null
     private var mLuminanceFilter: IShader? = null
     private var mTextureId: Int = 0
     private val mEglHelper = EglHelper()
+
     // 像素读取，解码线程
     private var mPixelThread: HandlerThread? = null
     private var mPixelHandler: PixelHandler? = null
     private val mPixelLock = ReentrantLock()
+
     //
     private var mWidth: Int = 0
     private var mHeight: Int = 0
+
     //
     private val mPixelEglHelper = EglHelper()
     private var mPixelSurfaceTexture: SurfaceTexture? = null
+
     //
     private var mFrameIds: IntArray? = null
     private var mPixelTexture = -1
     private var mPixelFilter: IShader? = null
+
     //
     private var mScale: Float = 1.0f
 
@@ -254,45 +261,46 @@ class GLCameraManager {
      * 从GL读取预览框数据
      */
     private fun readScanDataFromGL() {
-        mPixelLock.tryLock() // 如果正在处理数据，就会获取锁失败，这时正常情况
-        mPixelHandler?.post {
-            mPixelHandler?.let { pixelHandler ->
-                if (mPixelEglHelper.isEGLCreate()) {
-                    if (mFrameIds != null) {
-                        mPixelFilter?.onDraw(mFrameIds!![1], 0, 0, mWidth, mHeight, null)
-                    }
-                    //
-                    try {
-                        mPixelLock.lock()
-                        if (pixelHandler.width != 0 && pixelHandler.height != 0) {
-                            pixelHandler.buffer?.let { byteBuffer ->
-                                byteBuffer.position(0)
-                                GLES20.glReadPixels(
-                                    pixelHandler.left,
-                                    pixelHandler.top,
-                                    pixelHandler.width,
-                                    pixelHandler.height,
-                                    GLES20.GL_RGBA,
-                                    GLES20.GL_UNSIGNED_BYTE,
-                                    byteBuffer
-                                )
-                                byteBuffer.rewind()
-                                mOnReadScanData?.let {
-                                    if (pixelHandler.source != null) {
-                                        it(
-                                            pixelHandler.width,
-                                            pixelHandler.height,
-                                            pixelHandler.source!!,
-                                            byteBuffer
-                                        )
+        if (mPixelLock.tryLock()) { // 如果正在处理数据，就会获取锁失败，这时正常情况
+            mPixelHandler?.post {
+                mPixelHandler?.let { pixelHandler ->
+                    if (mPixelEglHelper.isEGLCreate()) {
+                        if (mFrameIds != null) {
+                            mPixelFilter?.onDraw(mFrameIds!![1], 0, 0, mWidth, mHeight, null)
+                        }
+                        //
+                        try {
+                            mPixelLock.lock()
+                            if (pixelHandler.width != 0 && pixelHandler.height != 0) {
+                                pixelHandler.buffer?.let { byteBuffer ->
+                                    byteBuffer.position(0)
+                                    GLES20.glReadPixels(
+                                        pixelHandler.left,
+                                        pixelHandler.top,
+                                        pixelHandler.width,
+                                        pixelHandler.height,
+                                        GLES20.GL_RGBA,
+                                        GLES20.GL_UNSIGNED_BYTE,
+                                        byteBuffer
+                                    )
+                                    byteBuffer.rewind()
+                                    mOnReadScanData?.let {
+                                        if (pixelHandler.source != null) {
+                                            it(
+                                                pixelHandler.width,
+                                                pixelHandler.height,
+                                                pixelHandler.source!!,
+                                                byteBuffer
+                                            )
+                                        }
                                     }
                                 }
                             }
+                        } finally {
+                            mPixelLock.unlock()
                         }
-                    } finally {
-                        mPixelLock.unlock()
+                        mPixelEglHelper.swapBuffers()
                     }
-                    mPixelEglHelper.swapBuffers()
                 }
             }
         }
